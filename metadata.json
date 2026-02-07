@@ -1,0 +1,6 @@
+
+{
+  "name": "PsiCuidar: Gestão Clínica Inteligente",
+  "description": "Um sistema SaaS completo de gestão psicopedagógica, profissional, bonito, ético e comercializável, com integração ao Supabase para gerenciamento de agendamentos, avaliações e relatórios.",
+  "requestFramePermissions": []
+}
