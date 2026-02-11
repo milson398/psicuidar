@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 interface Pagamento {
     id: string;
     aluno: string;
+    celular?: string; // Para WhatsApp
     valor: number;
     metodo: 'PIX' | 'Cartão de Crédito' | 'Espécie';
     data: string;
@@ -16,14 +17,27 @@ interface AdminConfig {
     chavePix: string;
     linkBanco: string;
     linkCartao: string;
+    mensagemWhatsApp?: string;
 }
 
 const Pagamentos: React.FC = () => {
     // Carregar configurações do localStorage
     const [config, setConfig] = useState<AdminConfig>(() => {
         const saved = localStorage.getItem('psicuidar_pagamentos_config');
-        return saved ? JSON.parse(saved) : { chavePix: '', linkBanco: '', linkCartao: '' };
+        const defaultConfig = {
+            chavePix: '',
+            linkBanco: '',
+            linkCartao: '',
+            mensagemWhatsApp: 'Olá {nome}, segue o link para pagamento da mensalidade no valor de R$ {valor}. Após o pagamento, nos envie o comprovante. {link}'
+        };
+        return saved ? { ...defaultConfig, ...JSON.parse(saved) } : defaultConfig;
     });
+
+    // Carregar matrículas para busca automática
+    const matriculas = useMemo(() => {
+        const saved = localStorage.getItem('psicuidar_matriculas');
+        return saved ? JSON.parse(saved) : [];
+    }, []);
 
     // Carregar pagamentos do localStorage
     const [pagamentos, setPagamentos] = useState<Pagamento[]>(() => {
@@ -38,6 +52,7 @@ const Pagamentos: React.FC = () => {
     // Form States para novo pagamento
     const [formData, setFormData] = useState({
         aluno: '',
+        celular: '',
         valor: '',
         metodo: 'PIX' as Pagamento['metodo'],
         status: 'Pendente' as Pagamento['status']
@@ -61,6 +76,7 @@ const Pagamentos: React.FC = () => {
         const novoPagamento: Pagamento = {
             id: Date.now().toString(),
             aluno: formData.aluno,
+            celular: formData.celular,
             valor: valorNum,
             metodo: formData.metodo,
             data: new Date().toISOString().split('T')[0],
@@ -70,7 +86,27 @@ const Pagamentos: React.FC = () => {
 
         setPagamentos(prev => [novoPagamento, ...prev]);
         setIsModalOpen(false);
-        setFormData({ aluno: '', valor: '', metodo: 'PIX', status: 'Pendente' });
+        setFormData({ aluno: '', celular: '', valor: '', metodo: 'PIX', status: 'Pendente' });
+    };
+
+    // Função para enviar WhatsApp
+    const enviarWhatsApp = (p: Pagamento) => {
+        if (!p.celular) {
+            alert('Este registro não possui número de celular cadastrado.');
+            return;
+        }
+
+        const link = p.metodo === 'PIX' ? (config.chavePix.startsWith('http') ? config.chavePix : config.linkBanco) : config.linkCartao;
+
+        let mensagem = config.mensagemWhatsApp || '';
+        mensagem = mensagem
+            .replace('{nome}', p.aluno)
+            .replace('{valor}', p.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 }))
+            .replace('{link}', link || '(Link não configurado)');
+
+        const phone = p.celular.replace(/\D/g, '');
+        const url = `https://web.whatsapp.com/send?phone=+55${phone}&text=${encodeURIComponent(mensagem)}`;
+        window.open(url, '_blank');
     };
 
     // Função para confirmar pagamento (Pagar via PIX/Cartão ou Dinheiro)
@@ -169,7 +205,18 @@ const Pagamentos: React.FC = () => {
                                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Link Pagamento Cartão (Stripe/Mercado Pago)</label>
                                 <input type="text" value={config.linkCartao} onChange={e => setConfig({ ...config, linkCartao: e.target.value })} className="w-full p-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: https://mpago.la/..." />
                             </div>
-                            <button onClick={() => setIsConfigOpen(false)} className="w-full py-3 mt-4 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-all">
+                            <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
+                                <h3 className="text-sm font-bold text-gray-800 dark:text-white mb-3">Envio de Link de Pagamento via WhatsApp</h3>
+                                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Mensagem Padrão personalizada</label>
+                                <textarea
+                                    value={config.mensagemWhatsApp}
+                                    onChange={e => setConfig({ ...config, mensagemWhatsApp: e.target.value })}
+                                    className="w-full p-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 text-sm h-24"
+                                    placeholder="Use {nome}, {valor} e {link} para preenchimento automático."
+                                />
+                                <p className="text-[10px] text-gray-400 mt-1 italic">Dica: {`{nome}`}, {`{valor}`} e {`{link}`} são substituídos automaticamente.</p>
+                            </div>
+                            <button onClick={() => setIsConfigOpen(false)} className="w-full py-3 mt-4 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-all font-bold">
                                 Salvar Configurações
                             </button>
                         </div>
@@ -242,10 +289,18 @@ const Pagamentos: React.FC = () => {
                                                         {p.status === 'Pendente' && (
                                                             <>
                                                                 <button
+                                                                    onClick={() => enviarWhatsApp(p)}
+                                                                    className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-bold flex items-center transition-all transform active:scale-95"
+                                                                    title="Enviar Cobrança via WhatsApp"
+                                                                >
+                                                                    <svg className="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>
+                                                                    Cobrar
+                                                                </button>
+                                                                <button
                                                                     onClick={() => confirmarPagamento(p.id, p.metodo)}
                                                                     className={`px-3 py-1.5 rounded-lg text-xs font-bold text-white transition-all transform active:scale-95 ${p.metodo === 'PIX' ? 'bg-indigo-500 hover:bg-indigo-600' :
-                                                                        p.metodo === 'Cartão de Crédito' ? 'bg-blue-500 hover:bg-blue-600' :
-                                                                            'bg-green-500 hover:bg-green-600'
+                                                                            p.metodo === 'Cartão de Crédito' ? 'bg-blue-500 hover:bg-blue-600' :
+                                                                                'bg-green-500 hover:bg-green-600'
                                                                         }`}
                                                                 >
                                                                     {p.metodo === 'PIX' ? 'Pagar via PIX' :
@@ -295,7 +350,46 @@ const Pagamentos: React.FC = () => {
                         <form onSubmit={handleSavePayment} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Nome do Aluno</label>
-                                <input type="text" required value={formData.aluno} onChange={e => setFormData({ ...formData, aluno: e.target.value })} className="w-full p-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" placeholder="Digite o nome..." />
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        required
+                                        value={formData.aluno}
+                                        onChange={e => setFormData({ ...formData, aluno: e.target.value })}
+                                        className="w-full p-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Digite ou selecione aluno..."
+                                        list="list-alunos"
+                                    />
+                                    <datalist id="list-alunos">
+                                        {matriculas.map((m: any) => (
+                                            <option key={m.id} value={m.nome}>{m.atividade} - R$ {m.valor}</option>
+                                        ))}
+                                    </datalist>
+                                    <button
+                                        type="button"
+                                        className="absolute right-2 top-2.5 text-blue-500 hover:text-blue-600"
+                                        onClick={() => {
+                                            const selected = matriculas.find((m: any) => m.nome === formData.aluno);
+                                            if (selected) {
+                                                setFormData({
+                                                    ...formData,
+                                                    valor: selected.valor.toString().replace('.', ','),
+                                                    celular: selected.celular
+                                                });
+                                            } else {
+                                                alert('Selecione um aluno da lista para puxar os dados automaticamente.');
+                                            }
+                                        }}
+                                        title="Puxar dados da matrícula"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                    </button>
+                                </div>
+                                <p className="text-[10px] text-gray-400 mt-1">Digite o nome e clique no raio ⚡ para preencher automaticamente via Matrícula.</p>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Celular (WhatsApp)</label>
+                                <input type="text" value={formData.celular} onChange={e => setFormData({ ...formData, celular: e.target.value })} className="w-full p-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" placeholder="(00) 00000-0000" />
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Valor (R$)</label>
