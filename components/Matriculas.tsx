@@ -24,6 +24,7 @@ const Matriculas: React.FC = () => {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingMatricula, setEditingMatricula] = useState<Matricula | null>(null);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
 
     // Form States
     const [formData, setFormData] = useState({
@@ -91,9 +92,8 @@ const Matriculas: React.FC = () => {
     };
 
     const handleDelete = (id: string) => {
-        if (window.confirm('Tem certeza que deseja excluir esta matrícula?')) {
-            setMatriculas(prev => prev.filter(m => m.id !== id));
-        }
+        setMatriculas(prev => prev.filter(m => m.id !== id));
+        setDeletingId(null);
     };
 
     return (
@@ -171,13 +171,23 @@ const Matriculas: React.FC = () => {
                                             R$ {m.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <div className="flex justify-end space-x-2">
-                                                <button onClick={() => handleOpenModal(m)} className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-full transition-all">
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                                                </button>
-                                                <button onClick={() => handleDelete(m.id)} className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-full transition-all">
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                                </button>
+                                            <div className="flex justify-end items-center space-x-2">
+                                                {deletingId === m.id ? (
+                                                    <div className="flex items-center bg-red-50 dark:bg-red-900/20 rounded-lg p-1 animate-pulse">
+                                                        <span className="text-xs font-bold text-red-600 dark:text-red-400 mr-2 ml-1">Deseja excluir?</span>
+                                                        <button onClick={() => handleDelete(m.id)} className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors mr-1">Sim</button>
+                                                        <button onClick={() => setDeletingId(null)} className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded hover:bg-gray-300 transition-colors">Não</button>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <button onClick={() => handleOpenModal(m)} className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-full transition-all">
+                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                                        </button>
+                                                        <button onClick={() => setDeletingId(m.id)} className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-full transition-all" title="Excluir">
+                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                        </button>
+                                                    </>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>

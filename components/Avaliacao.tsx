@@ -22,6 +22,7 @@ const Avaliacao: React.FC = () => {
 
     // Estado para armazenar a avaliação selecionada para visualização
     const [selectedEvaluation, setSelectedEvaluation] = useState<AvaliacaoData | null>(null);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
 
     // Form States
     const [newName, setNewName] = useState('');
@@ -45,9 +46,8 @@ const Avaliacao: React.FC = () => {
     };
 
     const handleDelete = (id: string) => {
-        if (window.confirm('Deseja excluir?')) {
-            setEvaluations(prev => prev.filter(eva => eva.id !== id));
-        }
+        setEvaluations(prev => prev.filter(eva => eva.id !== id));
+        setDeletingId(null);
     };
 
     return (
@@ -81,20 +81,30 @@ const Avaliacao: React.FC = () => {
                         </div>
                         <div className="flex justify-between items-center text-sm text-gray-400 border-t pt-4 dark:border-gray-700 mt-auto">
                             <span>{new Date(eva.date).toLocaleDateString('pt-BR')}</span>
-                            <div className="flex space-x-4">
-                                <button
-                                    onClick={() => handleDelete(eva.id)}
-                                    className="text-red-600 hover:text-red-800 font-medium focus:outline-none flex items-center"
-                                >
-                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                    Excluir
-                                </button>
-                                <button
-                                    onClick={() => setSelectedEvaluation(eva)}
-                                    className="text-blue-600 hover:text-blue-800 font-medium focus:outline-none"
-                                >
-                                    Ver Detalhes
-                                </button>
+                            <div className="flex space-x-4 items-center">
+                                {deletingId === eva.id ? (
+                                    <div className="flex items-center bg-red-50 dark:bg-red-900/20 rounded-lg p-1.5 animate-pulse border border-red-100 dark:border-red-900/30 shadow-sm">
+                                        <span className="text-[10px] font-bold text-red-600 dark:text-red-400 mr-2 ml-1">Excluir?</span>
+                                        <button onClick={() => handleDelete(eva.id)} className="px-2 py-0.5 bg-red-600 text-white text-[10px] rounded hover:bg-red-700 transition-colors mr-1 font-bold">Sim</button>
+                                        <button onClick={() => setDeletingId(null)} className="px-2 py-0.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-[10px] rounded hover:bg-gray-300 transition-colors font-bold">Não</button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <button
+                                            onClick={() => setDeletingId(eva.id)}
+                                            className="text-red-600 hover:text-red-800 font-medium focus:outline-none flex items-center"
+                                        >
+                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                            Excluir
+                                        </button>
+                                        <button
+                                            onClick={() => setSelectedEvaluation(eva)}
+                                            className="text-blue-600 hover:text-blue-800 font-medium focus:outline-none"
+                                        >
+                                            Ver Detalhes
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>

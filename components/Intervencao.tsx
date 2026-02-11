@@ -53,6 +53,7 @@ const Intervencao: React.FC = () => {
     const [sourceActivities, setSourceActivities] = useState<Activity[]>(initialActivities);
     const [selectedPatient, setSelectedPatient] = useState('');
     const [planActivities, setPlanActivities] = useState<Activity[]>([]);
+    const [deletingId, setDeletingId] = useState<number | null>(null);
 
     // Função para adicionar atividade ao plano
     const handleAddActivity = (e: React.MouseEvent, activity: Activity) => {
@@ -79,11 +80,10 @@ const Intervencao: React.FC = () => {
     const handleDeleteSourceActivity = (e: React.MouseEvent, id: number) => {
         e.preventDefault();
         e.stopPropagation();
-        if (window.confirm('Tem certeza que deseja excluir este item?')) {
-            setSourceActivities(prev => prev.filter(a => a.id !== id));
-            // Também remove do plano se estiver lá
-            setPlanActivities(prev => prev.filter(a => a.id !== id));
-        }
+        setSourceActivities(prev => prev.filter(a => a.id !== id));
+        // Também remove do plano se estiver lá
+        setPlanActivities(prev => prev.filter(a => a.id !== id));
+        setDeletingId(null);
     };
 
     // Função para gerar o PDF (Janela de Impressão)
@@ -221,13 +221,21 @@ const Intervencao: React.FC = () => {
                                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{activity.description}</p>
                                 </div>
                                 <div className="flex items-center space-x-2">
-                                    <button
-                                        onClick={(e) => handleDeleteSourceActivity(e, activity.id)}
-                                        className="flex-shrink-0 p-2 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-gray-700 rounded-full transition-all"
-                                        title="Excluir Atividade"
-                                    >
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                    </button>
+                                    {deletingId === activity.id ? (
+                                        <div className="flex items-center bg-red-50 dark:bg-red-900/20 rounded-lg p-1.5 animate-pulse border border-red-100 dark:border-red-900/30">
+                                            <span className="text-[10px] font-bold text-red-600 dark:text-red-400 mr-2 ml-1">Excluir?</span>
+                                            <button onClick={(e) => handleDeleteSourceActivity(e, activity.id)} className="px-2 py-0.5 bg-red-600 text-white text-[10px] rounded hover:bg-red-700 transition-colors mr-1 font-bold">Sim</button>
+                                            <button onClick={(e) => { e.stopPropagation(); setDeletingId(null); }} className="px-2 py-0.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-[10px] rounded hover:bg-gray-300 transition-colors font-bold">Não</button>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); setDeletingId(activity.id); }}
+                                            className="flex-shrink-0 p-2 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-gray-700 rounded-full transition-all"
+                                            title="Excluir Atividade"
+                                        >
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                        </button>
+                                    )}
                                     <button
                                         onClick={(e) => handleAddActivity(e, activity)}
                                         disabled={isAdded}
