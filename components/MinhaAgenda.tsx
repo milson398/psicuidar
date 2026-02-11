@@ -257,8 +257,14 @@ const MinhaAgenda: React.FC<MinhaAgendaProps> = ({ appointments, onAddAppointmen
                 .update({ is_viewed: false })
                 .eq('id', appointment.id);
 
-            // Abre o WhatsApp apenas agora, quando está pronto
-            window.location.href = waUrl;
+            // Abre o WhatsApp em nova aba sem sair da página
+            const link = document.createElement('a');
+            link.href = waUrl;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
 
         } catch (error) {
             console.error('Erro ao preparar WhatsApp:', error);
