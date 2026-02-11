@@ -10,7 +10,7 @@ interface Activity {
     duration: string;
 }
 
-const activities: Activity[] = [
+const initialActivities: Activity[] = [
     {
         id: 1,
         title: 'Jogo da Memória Fonológico',
@@ -50,6 +50,7 @@ const activities: Activity[] = [
 
 const Intervencao: React.FC = () => {
     // Estados para gerenciar o planejamento
+    const [sourceActivities, setSourceActivities] = useState<Activity[]>(initialActivities);
     const [selectedPatient, setSelectedPatient] = useState('');
     const [planActivities, setPlanActivities] = useState<Activity[]>([]);
 
@@ -74,10 +75,21 @@ const Intervencao: React.FC = () => {
         setPlanActivities(prev => prev.filter(a => a.id !== id));
     };
 
+    // Função para deletar a atividade da fonte (Atividades Sugeridas)
+    const handleDeleteSourceActivity = (e: React.MouseEvent, id: number) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (window.confirm('Tem certeza que deseja excluir este item?')) {
+            setSourceActivities(prev => prev.filter(a => a.id !== id));
+            // Também remove do plano se estiver lá
+            setPlanActivities(prev => prev.filter(a => a.id !== id));
+        }
+    };
+
     // Função para gerar o PDF (Janela de Impressão)
     const handleGeneratePDF = (e: React.MouseEvent) => {
         e.preventDefault();
-        
+
         if (!selectedPatient) {
             alert('Por favor, selecione um paciente no menu lateral antes de gerar o plano.');
             return;
@@ -89,7 +101,7 @@ const Intervencao: React.FC = () => {
         }
 
         const date = new Date().toLocaleDateString('pt-BR');
-        
+
         // Abre a janela
         const printWindow = window.open('', '_blank', 'width=800,height=600');
 
@@ -193,7 +205,7 @@ const Intervencao: React.FC = () => {
                 {/* Lista de Atividades */}
                 <div className="lg:col-span-2 space-y-4">
                     <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-4 text-center lg:text-left">Atividades Sugeridas</h2>
-                    {activities.map(activity => {
+                    {sourceActivities.map(activity => {
                         const isAdded = planActivities.some(a => a.id === activity.id);
                         return (
                             <div key={activity.id} className="bg-white dark:bg-gray-800 rounded-lg p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all flex justify-between items-center group">
@@ -208,22 +220,30 @@ const Intervencao: React.FC = () => {
                                     <h3 className="text-lg font-bold text-gray-800 dark:text-white group-hover:text-blue-600 transition-colors">{activity.title}</h3>
                                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{activity.description}</p>
                                 </div>
-                                <button 
-                                    onClick={(e) => handleAddActivity(e, activity)}
-                                    disabled={isAdded}
-                                    className={`flex-shrink-0 p-3 rounded-full transition-all duration-200 transform active:scale-95 ${
-                                        isAdded 
-                                        ? 'bg-green-100 text-green-600 cursor-default ring-2 ring-green-200' 
-                                        : 'bg-gray-50 dark:bg-gray-700 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-gray-600'
-                                    }`}
-                                    title={isAdded ? "Atividade já adicionada" : "Adicionar ao Plano"}
-                                >
-                                    {isAdded ? (
-                                        <svg className="w-6 h-6 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                    ) : (
-                                        <svg className="w-6 h-6 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                                    )}
-                                </button>
+                                <div className="flex items-center space-x-2">
+                                    <button
+                                        onClick={(e) => handleDeleteSourceActivity(e, activity.id)}
+                                        className="flex-shrink-0 p-2 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-gray-700 rounded-full transition-all"
+                                        title="Excluir Atividade"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    </button>
+                                    <button
+                                        onClick={(e) => handleAddActivity(e, activity)}
+                                        disabled={isAdded}
+                                        className={`flex-shrink-0 p-3 rounded-full transition-all duration-200 transform active:scale-95 ${isAdded
+                                            ? 'bg-green-100 text-green-600 cursor-default ring-2 ring-green-200'
+                                            : 'bg-gray-50 dark:bg-gray-700 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-gray-600'
+                                            }`}
+                                        title={isAdded ? "Atividade já adicionada" : "Adicionar ao Plano"}
+                                    >
+                                        {isAdded ? (
+                                            <svg className="w-6 h-6 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                        ) : (
+                                            <svg className="w-6 h-6 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                                        )}
+                                    </button>
+                                </div>
                             </div>
                         );
                     })}
@@ -236,11 +256,11 @@ const Intervencao: React.FC = () => {
                             <h2 className="text-xl font-bold">Planejamento</h2>
                             <span className="bg-blue-700 text-xs px-2 py-1 rounded-full">{planActivities.length} atividades</span>
                         </div>
-                        
+
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-blue-100 mb-1">Paciente</label>
-                                <select 
+                                <select
                                     className="w-full p-2 rounded bg-blue-700 border border-blue-500 text-white focus:ring-2 focus:ring-white outline-none cursor-pointer"
                                     value={selectedPatient}
                                     onChange={(e) => setSelectedPatient(e.target.value)}
@@ -251,7 +271,7 @@ const Intervencao: React.FC = () => {
                                     <option value="Pedro Santos">Pedro Santos</option>
                                 </select>
                             </div>
-                            
+
                             <div className={`border-2 border-dashed border-blue-400 rounded-lg p-4 min-h-[150px] transition-all ${planActivities.length > 0 ? 'bg-blue-700 border-transparent' : 'bg-blue-700/30 flex items-center justify-center text-center'}`}>
                                 {planActivities.length === 0 ? (
                                     <div className="text-blue-200">
@@ -263,7 +283,7 @@ const Intervencao: React.FC = () => {
                                         {planActivities.map(act => (
                                             <li key={act.id} className="bg-blue-800 rounded p-2 text-sm flex justify-between items-center group animate-fade-in-up">
                                                 <span className="truncate pr-2 font-medium">{act.title}</span>
-                                                <button 
+                                                <button
                                                     onClick={(e) => handleRemoveActivity(e, act.id)}
                                                     className="text-blue-300 hover:text-red-300 p-1 rounded hover:bg-blue-900 transition-colors"
                                                     title="Remover atividade"
@@ -276,13 +296,12 @@ const Intervencao: React.FC = () => {
                                 )}
                             </div>
 
-                            <button 
+                            <button
                                 onClick={handleGeneratePDF}
-                                className={`w-full py-3 font-bold rounded-lg shadow-lg transition-all transform active:scale-95 flex justify-center items-center ${
-                                    selectedPatient && planActivities.length > 0 
-                                    ? 'bg-white text-blue-600 hover:bg-gray-100' 
+                                className={`w-full py-3 font-bold rounded-lg shadow-lg transition-all transform active:scale-95 flex justify-center items-center ${selectedPatient && planActivities.length > 0
+                                    ? 'bg-white text-blue-600 hover:bg-gray-100'
                                     : 'bg-blue-800 text-blue-400 cursor-not-allowed opacity-75'
-                                }`}
+                                    }`}
                                 disabled={!selectedPatient || planActivities.length === 0}
                                 title={!selectedPatient ? "Selecione um paciente" : planActivities.length === 0 ? "Adicione atividades" : "Imprimir Plano"}
                             >
