@@ -8,6 +8,7 @@ import Relatorios from './components/Relatorios';
 import Avaliacao from './components/Avaliacao';
 import Intervencao from './components/Intervencao';
 import Matriculas from './components/Matriculas';
+import Pagamentos from './components/Pagamentos';
 import Configuracoes from './components/Configuracoes';
 import { Appointment, AppointmentStatus, UserProfile, ThemeColor } from './types';
 import { supabase } from './lib/supabase';
@@ -383,6 +384,8 @@ const App: React.FC = () => {
         return <Intervencao />;
       case 'Matrículas':
         return <Matriculas />;
+      case 'Controle de Pagamentos':
+        return <Pagamentos />;
       case 'Configurações':
         return <Configuracoes
           userProfile={userProfile}
