@@ -7,6 +7,7 @@ import MinhaAgenda from './components/MinhaAgenda';
 import Relatorios from './components/Relatorios';
 import Avaliacao from './components/Avaliacao';
 import Intervencao from './components/Intervencao';
+import Matriculas from './components/Matriculas';
 import Configuracoes from './components/Configuracoes';
 import { Appointment, AppointmentStatus, UserProfile, ThemeColor } from './types';
 import { supabase } from './lib/supabase';
@@ -380,6 +381,8 @@ const App: React.FC = () => {
         return <Avaliacao />;
       case 'Intervenção':
         return <Intervencao />;
+      case 'Matrículas':
+        return <Matriculas />;
       case 'Configurações':
         return <Configuracoes
           userProfile={userProfile}
