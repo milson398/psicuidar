@@ -19,10 +19,10 @@ const initialEvaluations: AvaliacaoData[] = [
 const Avaliacao: React.FC = () => {
     const [evaluations, setEvaluations] = useState<AvaliacaoData[]>(initialEvaluations);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    
+
     // Estado para armazenar a avaliação selecionada para visualização
     const [selectedEvaluation, setSelectedEvaluation] = useState<AvaliacaoData | null>(null);
-    
+
     // Form States
     const [newName, setNewName] = useState('');
     const [newInstrument, setNewInstrument] = useState('Anamnese');
@@ -44,6 +44,12 @@ const Avaliacao: React.FC = () => {
         setNewSummary('');
     };
 
+    const handleDelete = (id: string) => {
+        if (window.confirm('Tem certeza que deseja excluir esta avaliação?')) {
+            setEvaluations(prev => prev.filter(eva => eva.id !== id));
+        }
+    };
+
     return (
         <div className="container mx-auto px-4 sm:px-6 py-8">
             <div className="flex justify-between items-center mb-8">
@@ -51,7 +57,7 @@ const Avaliacao: React.FC = () => {
                     <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Avaliação Psicopedagógica</h1>
                     <p className="text-gray-500 dark:text-gray-400 mt-1">Gerencie prontuários e instrumentos avaliativos.</p>
                 </div>
-                <button 
+                <button
                     onClick={() => setIsModalOpen(true)}
                     className="flex items-center py-2 px-4 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors"
                 >
@@ -75,12 +81,21 @@ const Avaliacao: React.FC = () => {
                         </div>
                         <div className="flex justify-between items-center text-sm text-gray-400 border-t pt-4 dark:border-gray-700 mt-auto">
                             <span>{new Date(eva.date).toLocaleDateString('pt-BR')}</span>
-                            <button 
-                                onClick={() => setSelectedEvaluation(eva)}
-                                className="text-blue-600 hover:text-blue-800 font-medium focus:outline-none"
-                            >
-                                Ver Detalhes
-                            </button>
+                            <div className="flex space-x-4">
+                                <button
+                                    onClick={() => handleDelete(eva.id)}
+                                    className="text-red-600 hover:text-red-800 font-medium focus:outline-none flex items-center"
+                                >
+                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    Excluir
+                                </button>
+                                <button
+                                    onClick={() => setSelectedEvaluation(eva)}
+                                    className="text-blue-600 hover:text-blue-800 font-medium focus:outline-none"
+                                >
+                                    Ver Detalhes
+                                </button>
+                            </div>
                         </div>
                     </div>
                 ))}
@@ -89,17 +104,17 @@ const Avaliacao: React.FC = () => {
             {/* Modal de Nova Avaliação */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center backdrop-blur-sm p-4" onClick={() => setIsModalOpen(false)}>
-                    <div 
-                        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-md max-h-[90vh] overflow-y-auto animate-fade-in-up" 
+                    <div
+                        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-md max-h-[90vh] overflow-y-auto animate-fade-in-up"
                         onClick={e => e.stopPropagation()}
                     >
                         <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Registrar Avaliação</h2>
                         <form onSubmit={handleSave}>
                             <div className="mb-4">
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Paciente</label>
-                                <input 
-                                    type="text" 
-                                    required 
+                                <input
+                                    type="text"
+                                    required
                                     className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-gray-900 dark:text-white bg-white"
                                     value={newName}
                                     onChange={e => setNewName(e.target.value)}
@@ -108,7 +123,7 @@ const Avaliacao: React.FC = () => {
                             </div>
                             <div className="mb-4">
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Instrumento</label>
-                                <select 
+                                <select
                                     className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-gray-800 dark:text-white bg-white"
                                     value={newInstrument}
                                     onChange={e => setNewInstrument(e.target.value)}
@@ -123,8 +138,8 @@ const Avaliacao: React.FC = () => {
                             </div>
                             <div className="mb-6">
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Resumo / Observações</label>
-                                <textarea 
-                                    required 
+                                <textarea
+                                    required
                                     rows={6}
                                     className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-gray-800 dark:text-white bg-white"
                                     value={newSummary}
@@ -144,8 +159,8 @@ const Avaliacao: React.FC = () => {
             {/* Modal de Ver Detalhes */}
             {selectedEvaluation && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center backdrop-blur-sm p-4" onClick={() => setSelectedEvaluation(null)}>
-                    <div 
-                        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-md max-h-[90vh] overflow-y-auto animate-fade-in-up" 
+                    <div
+                        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-md max-h-[90vh] overflow-y-auto animate-fade-in-up"
                         onClick={e => e.stopPropagation()}
                     >
                         <div className="flex justify-between items-start mb-4">
@@ -154,13 +169,13 @@ const Avaliacao: React.FC = () => {
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
-                        
+
                         <div className="space-y-4">
                             <div>
                                 <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Paciente</h3>
                                 <p className="text-lg font-medium text-gray-900 dark:text-white">{selectedEvaluation.patientName}</p>
                             </div>
-                            
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Data</h3>
@@ -185,8 +200,8 @@ const Avaliacao: React.FC = () => {
                         </div>
 
                         <div className="mt-8 flex justify-end">
-                            <button 
-                                onClick={() => setSelectedEvaluation(null)} 
+                            <button
+                                onClick={() => setSelectedEvaluation(null)}
                                 className="px-5 py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 font-medium transition-colors"
                             >
                                 Fechar
