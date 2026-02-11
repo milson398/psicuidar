@@ -45,7 +45,7 @@ const Avaliacao: React.FC = () => {
     };
 
     const handleDelete = (id: string) => {
-        if (window.confirm('Tem certeza que deseja excluir esta avaliação?')) {
+        if (window.confirm('Deseja excluir?')) {
             setEvaluations(prev => prev.filter(eva => eva.id !== id));
         }
     };
