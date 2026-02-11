@@ -11,7 +11,17 @@ interface Matricula {
 }
 
 const Matriculas: React.FC = () => {
-    const [matriculas, setMatriculas] = useState<Matricula[]>([]);
+    // Carregar dados iniciais do localStorage se existirem
+    const [matriculas, setMatriculas] = useState<Matricula[]>(() => {
+        const saved = localStorage.getItem('psicuidar_matriculas');
+        return saved ? JSON.parse(saved) : [];
+    });
+
+    // Salvar no localStorage sempre que houver mudança
+    React.useEffect(() => {
+        localStorage.setItem('psicuidar_matriculas', JSON.stringify(matriculas));
+    }, [matriculas]);
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingMatricula, setEditingMatricula] = useState<Matricula | null>(null);
 
@@ -133,7 +143,7 @@ const Matriculas: React.FC = () => {
                                 <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Atividade</th>
                                 <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Celular</th>
                                 <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Valor (R$)</th>
-                                <th className="px-6 py-3 text-right text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Ações</th>
+                                <th className="px-6 py-3 text-right text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider"></th>
                             </tr>
                         </thead>
                         <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
