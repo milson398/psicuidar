@@ -233,7 +233,7 @@ const MinhaAgenda: React.FC<MinhaAgendaProps> = ({ appointments, onAddAppointmen
         setProcessingWaId(appointment.id);
 
         try {
-            const baseUrl = import.meta.env.VITE_PUBLIC_URL || 'http://localhost:5173';
+            const baseUrl = import.meta.env.VITE_PUBLIC_URL || 'https://psicuidar-jq2b.vercel.app';
 
             const [shortConfirm, shortCancel, shortResched] = await Promise.all([
                 shortenUrl(`${baseUrl}/?token=${appointment.confirmationToken}&res=confirm`),
@@ -258,7 +258,7 @@ const MinhaAgenda: React.FC<MinhaAgendaProps> = ({ appointments, onAddAppointmen
                 .eq('id', appointment.id);
 
             // Abre o WhatsApp apenas agora, quando está pronto
-            window.open(waUrl, '_blank');
+            window.location.href = waUrl;
 
         } catch (error) {
             console.error('Erro ao preparar WhatsApp:', error);

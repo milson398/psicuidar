@@ -160,7 +160,19 @@ const App: React.FC = () => {
 
             if (fetchError || !appData) throw new Error('Agendamento não encontrado.');
 
-            if (new Date() > new Date(appData.token_expires_at)) throw new Error('Link expirado.');
+            if (!appData.token_expires_at) {
+              throw new Error('Link inválido.');
+            }
+
+            const expiresAt = new Date(appData.token_expires_at);
+
+            if (isNaN(expiresAt.getTime())) {
+              throw new Error('Link inválido.');
+            }
+
+            if (new Date() > expiresAt) {
+              throw new Error('Link expirado.');
+            }
 
             await supabase
               .from('appointments')
