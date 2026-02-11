@@ -183,11 +183,11 @@ const Pagamentos: React.FC = () => {
                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead className="bg-gray-50 dark:bg-gray-700/50">
                             <tr>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Aluno</th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Valor / Método</th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Data Registro / Pagto</th>
-                                <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Ações</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600">Aluno</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600">Valor / Método</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600">Status</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600">Data Registro / Pagto</th>
+                                <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600">Ações</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -200,14 +200,14 @@ const Pagamentos: React.FC = () => {
                             ) : (
                                 pagamentos.map((p) => (
                                     <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-6 py-4 whitespace-nowrap border border-gray-200 dark:border-gray-700">
                                             <div className="text-sm font-bold text-gray-900 dark:text-white">{p.aluno}</div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-6 py-4 whitespace-nowrap border border-gray-200 dark:border-gray-700">
                                             <div className="text-sm font-extrabold text-blue-600 dark:text-blue-400">R$ {p.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
                                             <div className="text-[10px] text-gray-400 font-bold uppercase">{p.metodo}</div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-6 py-4 whitespace-nowrap border border-gray-200 dark:border-gray-700">
                                             {p.status === 'Pago' ? (
                                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800">
                                                     <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
@@ -223,13 +223,13 @@ const Pagamentos: React.FC = () => {
                                                 </span>
                                             )}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-6 py-4 whitespace-nowrap border border-gray-200 dark:border-gray-700">
                                             <div className="text-xs text-gray-500 dark:text-gray-400">Criado: {new Date(p.data).toLocaleDateString('pt-BR')}</div>
                                             {p.dataConfirmacao && (
                                                 <div className="text-[10px] font-bold text-green-600 dark:text-green-500 mt-0.5">✔ {p.dataConfirmacao}</div>
                                             )}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm border border-gray-200 dark:border-gray-700">
                                             <div className="flex justify-end items-center space-x-2">
                                                 {deletingId === p.id ? (
                                                     <div className="flex items-center bg-red-50 dark:bg-red-900/20 rounded-lg p-1.5 animate-pulse border border-red-100 dark:border-red-900/30">
@@ -244,8 +244,8 @@ const Pagamentos: React.FC = () => {
                                                                 <button
                                                                     onClick={() => confirmarPagamento(p.id, p.metodo)}
                                                                     className={`px-3 py-1.5 rounded-lg text-xs font-bold text-white transition-all transform active:scale-95 ${p.metodo === 'PIX' ? 'bg-indigo-500 hover:bg-indigo-600' :
-                                                                            p.metodo === 'Cartão de Crédito' ? 'bg-blue-500 hover:bg-blue-600' :
-                                                                                'bg-green-500 hover:bg-green-600'
+                                                                        p.metodo === 'Cartão de Crédito' ? 'bg-blue-500 hover:bg-blue-600' :
+                                                                            'bg-green-500 hover:bg-green-600'
                                                                         }`}
                                                                 >
                                                                     {p.metodo === 'PIX' ? 'Pagar via PIX' :
