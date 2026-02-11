@@ -33,6 +33,7 @@ const Pagamentos: React.FC = () => {
 
     const [isConfigOpen, setIsConfigOpen] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
 
     // Form States para novo pagamento
     const [formData, setFormData] = useState({
@@ -116,9 +117,8 @@ const Pagamentos: React.FC = () => {
     };
 
     const handleDelete = (id: string) => {
-        if (window.confirm('Deseja excluir este registro?')) {
-            setPagamentos(prev => prev.filter(p => p.id !== id));
-        }
+        setPagamentos(prev => prev.filter(p => p.id !== id));
+        setDeletingId(null);
     };
 
     return (
@@ -230,43 +230,53 @@ const Pagamentos: React.FC = () => {
                                             )}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                            <div className="flex justify-end space-x-2">
-                                                {p.status === 'Pendente' && (
+                                            <div className="flex justify-end items-center space-x-2">
+                                                {deletingId === p.id ? (
+                                                    <div className="flex items-center bg-red-50 dark:bg-red-900/20 rounded-lg p-1.5 animate-pulse border border-red-100 dark:border-red-900/30">
+                                                        <span className="text-[10px] font-bold text-red-600 dark:text-red-400 mr-2 ml-1">Excluir?</span>
+                                                        <button onClick={() => handleDelete(p.id)} className="px-2 py-0.5 bg-red-600 text-white text-[10px] rounded hover:bg-red-700 transition-colors mr-1 font-bold">Sim</button>
+                                                        <button onClick={() => setDeletingId(null)} className="px-2 py-0.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-[10px] rounded hover:bg-gray-300 transition-colors font-bold">Não</button>
+                                                    </div>
+                                                ) : (
                                                     <>
-                                                        <button
-                                                            onClick={() => confirmarPagamento(p.id, p.metodo)}
-                                                            className={`px-3 py-1.5 rounded-lg text-xs font-bold text-white transition-all transform active:scale-95 ${p.metodo === 'PIX' ? 'bg-indigo-500 hover:bg-indigo-600' :
-                                                                    p.metodo === 'Cartão de Crédito' ? 'bg-blue-500 hover:bg-blue-600' :
-                                                                        'bg-green-500 hover:bg-green-600'
-                                                                }`}
-                                                        >
-                                                            {p.metodo === 'PIX' ? 'Pagar via PIX' :
-                                                                p.metodo === 'Cartão de Crédito' ? 'Pagar via Cartão' :
-                                                                    'Confirmar Dinheiro'}
-                                                        </button>
+                                                        {p.status === 'Pendente' && (
+                                                            <>
+                                                                <button
+                                                                    onClick={() => confirmarPagamento(p.id, p.metodo)}
+                                                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold text-white transition-all transform active:scale-95 ${p.metodo === 'PIX' ? 'bg-indigo-500 hover:bg-indigo-600' :
+                                                                            p.metodo === 'Cartão de Crédito' ? 'bg-blue-500 hover:bg-blue-600' :
+                                                                                'bg-green-500 hover:bg-green-600'
+                                                                        }`}
+                                                                >
+                                                                    {p.metodo === 'PIX' ? 'Pagar via PIX' :
+                                                                        p.metodo === 'Cartão de Crédito' ? 'Pagar via Cartão' :
+                                                                            'Confirmar Dinheiro'}
+                                                                </button>
 
-                                                        {p.metodo !== 'Espécie' && (
-                                                            <button
-                                                                onClick={() => alterarStatus(p.id, 'Pago')}
-                                                                className="px-3 py-1.5 bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 rounded-lg text-xs font-bold hover:bg-green-200 transition-all"
-                                                                title="Confirmar Manual"
-                                                            >
-                                                                Confirmar
-                                                            </button>
+                                                                {p.metodo !== 'Espécie' && (
+                                                                    <button
+                                                                        onClick={() => alterarStatus(p.id, 'Pago')}
+                                                                        className="px-3 py-1.5 bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 rounded-lg text-xs font-bold hover:bg-green-200 transition-all"
+                                                                        title="Confirmar Manual"
+                                                                    >
+                                                                        Confirmar
+                                                                    </button>
+                                                                )}
+
+                                                                <button
+                                                                    onClick={() => alterarStatus(p.id, 'Cancelado')}
+                                                                    className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-all"
+                                                                    title="Cancelar"
+                                                                >
+                                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                                                </button>
+                                                            </>
                                                         )}
-
-                                                        <button
-                                                            onClick={() => alterarStatus(p.id, 'Cancelado')}
-                                                            className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-all"
-                                                            title="Cancelar"
-                                                        >
-                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                                        <button onClick={() => setDeletingId(p.id)} className="p-1.5 text-gray-400 hover:text-red-600 transition-all rounded-full" title="Excluir Registro">
+                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                                         </button>
                                                     </>
                                                 )}
-                                                <button onClick={() => handleDelete(p.id)} className="p-1.5 text-gray-400 hover:text-red-600 transition-all rounded-full" title="Excluir Registro">
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                                </button>
                                             </div>
                                         </td>
                                     </tr>
