@@ -228,7 +228,11 @@ const MinhaAgenda: React.FC<MinhaAgendaProps> = ({ appointments, onAddAppointmen
             return;
         }
 
-        if (processingWaId) return; // Evita cliques duplos
+        // ESTRATÉGIA PARA EVITAR BLOQUEIO: Abrir a janela IMEDIATAMENTE (antes dos awaits)
+        const waWindow = window.open('about:blank', '_blank');
+        if (waWindow) {
+            waWindow.document.write('<p style="font-family: sans-serif; text-align: center; margin-top: 50px;">Preparando link seguro do WhatsApp...<br>Por favor, aguarde.</p>');
+        }
 
         setProcessingWaId(appointment.id);
 
@@ -257,16 +261,16 @@ const MinhaAgenda: React.FC<MinhaAgendaProps> = ({ appointments, onAddAppointmen
                 .update({ is_viewed: false })
                 .eq('id', appointment.id);
 
-            // Abre o WhatsApp em nova aba sem sair da página
-            const link = document.createElement('a');
-            link.href = waUrl;
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // Redireciona a janela que abrimos antes
+            if (waWindow) {
+                waWindow.location.href = waUrl;
+            } else {
+                // Fallback se o navegador bloqueou mesmo assim ou algo falhou
+                window.location.href = waUrl;
+            }
 
         } catch (error) {
+            if (waWindow) waWindow.close();
             console.error('Erro ao preparar WhatsApp:', error);
             alert('Houve um erro ao preparar a mensagem. Tente novamente.');
         } finally {
