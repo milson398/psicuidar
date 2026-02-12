@@ -9,6 +9,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
+    const [showForgotHint, setShowForgotHint] = useState(false);
 
     // E-mail padrão mantido, senha vazia para segurança
     const [formData, setFormData] = useState({
@@ -233,14 +234,19 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                                 </label>
                             </div>
 
-                            <div className="text-sm">
+                            <div className="text-sm flex flex-col items-end">
                                 <button
                                     type="button"
-                                    onClick={() => alert('Dica: A senha padrão do administrador é "administrador". Se você alterou e esqueceu, entre em contato com o suporte.')}
-                                    className="font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400"
+                                    onClick={() => setShowForgotHint(!showForgotHint)}
+                                    className="font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400 focus:outline-none"
                                 >
                                     Esqueceu a senha?
                                 </button>
+                                {showForgotHint && (
+                                    <span className="text-[10px] text-gray-400 mt-1 animate-pulse">
+                                        Contate o suporte técnico para recuperação.
+                                    </span>
+                                )}
                             </div>
                         </div>
 
