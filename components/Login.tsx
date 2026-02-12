@@ -234,9 +234,13 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                             </div>
 
                             <div className="text-sm">
-                                <a href="#" className="font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400">
+                                <button
+                                    type="button"
+                                    onClick={() => alert('Dica: A senha padrão do administrador é "administrador". Se você alterou e esqueceu, entre em contato com o suporte.')}
+                                    className="font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400"
+                                >
                                     Esqueceu a senha?
-                                </a>
+                                </button>
                             </div>
                         </div>
 
