@@ -49,7 +49,12 @@ const App: React.FC = () => {
         .select('*')
         .order('date_time', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erro no select:", error);
+        throw error;
+      } else {
+        console.log("Dados retornados:", data);
+      }
 
       if (data) {
         setAppointments(data.map(app => ({
@@ -222,8 +227,18 @@ const App: React.FC = () => {
   // Adicionar agendamento
   const addAppointment = useCallback(async (newAppointment: Omit<Appointment, 'id' | 'status'>) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+      if (userError) {
+        console.error("Erro ao obter usuário:", userError);
+      }
+
+      if (!user) {
+        console.error("Usuário não autenticado.");
+        return;
+      }
+
+      console.log("Usuário autenticado:", user.id);
 
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
@@ -242,7 +257,12 @@ const App: React.FC = () => {
         })
         .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erro no insert:", error);
+        throw error;
+      } else {
+        console.log("Insert realizado com sucesso:", data);
+      }
       if (data && data[0]) {
         const newApp: Appointment = {
           id: data[0].id,
