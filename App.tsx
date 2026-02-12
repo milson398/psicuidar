@@ -230,7 +230,7 @@ const App: React.FC = () => {
 
       const { data, error } = await supabase
         .from('appointments')
-        .insert([{
+        .insert({
           patient_name: newAppointment.patientName,
           whatsapp: newAppointment.whatsapp,
           date_time: newAppointment.dateTime.toISOString(),
@@ -239,7 +239,7 @@ const App: React.FC = () => {
           is_viewed: true,
           token_expires_at: expiresAt.toISOString(),
           user_id: user.id
-        }])
+        })
         .select();
 
       if (error) throw error;
