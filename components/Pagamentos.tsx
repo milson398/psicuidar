@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
 // Tipagem para os pagamentos
 interface Pagamento {
@@ -21,29 +22,50 @@ interface AdminConfig {
 }
 
 const Pagamentos: React.FC = () => {
-    // Carregar configurações do localStorage
-    const [config, setConfig] = useState<AdminConfig>(() => {
-        const saved = localStorage.getItem('psicuidar_pagamentos_config');
-        const defaultConfig = {
-            chavePix: '',
-            linkBanco: '',
-            linkCartao: '',
-            mensagemWhatsApp: 'Olá {nome}, segue o link para pagamento da mensalidade no valor de R$ {valor}. Após o pagamento, nos envie o comprovante. {link}'
-        };
-        return saved ? { ...defaultConfig, ...JSON.parse(saved) } : defaultConfig;
+    const [config, setConfig] = useState<AdminConfig>({
+        chavePix: '',
+        linkBanco: '',
+        linkCartao: '',
+        mensagemWhatsApp: 'Olá {nome}, segue o link para pagamento da mensalidade no valor de R$ {valor}. Após o pagamento, nos envie o comprovante. {link}'
     });
 
-    // Carregar matrículas para busca automática
-    const matriculas = useMemo(() => {
-        const saved = localStorage.getItem('psicuidar_matriculas');
-        return saved ? JSON.parse(saved) : [];
+    const [matriculas, setMatriculas] = useState<any[]>([]);
+    const [pagamentos, setPagamentos] = useState<Pagamento[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    // Carregar TUDO do Supabase
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            // 1. Configurações
+            const { data: configData } = await supabase.from('configs').select('*').maybeSingle();
+            if (configData) {
+                setConfig({
+                    chavePix: configData.chave_pix || '',
+                    linkBanco: configData.link_banco || '',
+                    linkCartao: configData.link_cartao || '',
+                    mensagemWhatsApp: configData.mensagem_whatsapp || config.mensagemWhatsApp
+                });
+            }
+
+            // 2. Matrículas (Para o dropdown e busca automática)
+            const { data: matriculasData } = await supabase.from('matriculas').select('*').order('nome');
+            if (matriculasData) setMatriculas(matriculasData);
+
+            // 3. Pagamentos
+            const { data: pagamentosData } = await supabase.from('pagamentos').select('*').order('created_at', { ascending: false });
+            if (pagamentosData) setPagamentos(pagamentosData);
+
+        } catch (error) {
+            console.error('Erro ao carregar dados:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
     }, []);
-
-    // Carregar pagamentos do localStorage
-    const [pagamentos, setPagamentos] = useState<Pagamento[]>(() => {
-        const saved = localStorage.getItem('psicuidar_pagamentos_dados');
-        return saved ? JSON.parse(saved) : [];
-    });
 
     const [isConfigOpen, setIsConfigOpen] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -59,35 +81,63 @@ const Pagamentos: React.FC = () => {
         status: 'Pendente' as Pagamento['status']
     });
 
-    // Salvar configurações sempre que houver mudança
-    useEffect(() => {
-        localStorage.setItem('psicuidar_pagamentos_config', JSON.stringify(config));
-    }, [config]);
+    // Salvar configurações no Supabase
+    const saveConfig = async () => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
 
-    // Salvar pagamentos sempre que houver mudança
-    useEffect(() => {
-        localStorage.setItem('psicuidar_pagamentos_dados', JSON.stringify(pagamentos));
-    }, [pagamentos]);
+            const { error } = await supabase
+                .from('configs')
+                .upsert({
+                    user_id: user.id,
+                    chave_pix: config.chavePix,
+                    link_banco: config.linkBanco,
+                    link_cartao: config.linkCartao,
+                    mensagem_whatsapp: config.mensagemWhatsApp,
+                    updated_at: new Date().toISOString()
+                });
+            if (error) throw error;
+        } catch (error) {
+            console.error('Erro ao salvar config:', error);
+        }
+    };
+
+    // Debounce ou gatilho manual para salvar config. Vamos colocar no fechamento do modal por segurança.
+    const handleCloseConfig = () => {
+        saveConfig();
+        setIsConfigOpen(false);
+    };
 
     // Lógica de Cadastro de Pagamento
-    const handleSavePayment = (e: React.FormEvent) => {
+    const handleSavePayment = async (e: React.FormEvent) => {
         e.preventDefault();
         const valorNum = parseFloat(formData.valor.replace(',', '.')) || 0;
 
-        const novoPagamento: Pagamento = {
-            id: Date.now().toString(),
-            aluno: formData.aluno,
-            celular: formData.celular,
-            valor: valorNum,
-            metodo: formData.metodo,
-            data: new Date().toISOString().split('T')[0],
-            status: formData.status,
-            dataConfirmacao: formData.status === 'Pago' ? new Date().toLocaleString('pt-BR') : undefined
-        };
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error('Não autenticado');
 
-        setPagamentos(prev => [novoPagamento, ...prev]);
-        setIsModalOpen(false);
-        setFormData({ aluno: '', celular: '', valor: '', metodo: 'PIX', status: 'Pendente' });
+            const { error } = await supabase
+                .from('pagamentos')
+                .insert([{
+                    aluno: formData.aluno,
+                    celular: formData.celular,
+                    valor: valorNum,
+                    metodo: formData.metodo,
+                    data: new Date().toISOString().split('T')[0],
+                    status: formData.status,
+                    data_confirmacao: formData.status === 'Pago' ? new Date().toLocaleString('pt-BR') : null,
+                    user_id: user.id
+                }]);
+
+            if (error) throw error;
+            fetchData();
+            setIsModalOpen(false);
+            setFormData({ aluno: '', celular: '', valor: '', metodo: 'PIX', status: 'Pendente' });
+        } catch (error) {
+            console.error('Erro ao salvar pagamento:', error);
+        }
     };
 
     // Função para enviar WhatsApp
@@ -187,20 +237,33 @@ const Pagamentos: React.FC = () => {
         window.open(url, '_blank');
     };
 
-    const alterarStatus = (id: string, novoStatus: Pagamento['status']) => {
-        setPagamentos(prev => prev.map(p =>
-            p.id === id
-                ? {
-                    ...p,
+    const alterarStatus = async (id: string, novoStatus: Pagamento['status']) => {
+        try {
+            const { error } = await supabase
+                .from('pagamentos')
+                .update({
                     status: novoStatus,
-                    dataConfirmacao: novoStatus === 'Pago' ? new Date().toLocaleString('pt-BR') : undefined
-                }
-                : p
-        ));
+                    data_confirmacao: novoStatus === 'Pago' ? new Date().toLocaleString('pt-BR') : null
+                })
+                .eq('id', id);
+            if (error) throw error;
+            fetchData();
+        } catch (error) {
+            console.error('Erro ao alterar status:', error);
+        }
     };
 
-    const handleDelete = (id: string) => {
-        setPagamentos(prev => prev.filter(p => p.id !== id));
+    const handleDelete = async (id: string) => {
+        try {
+            const { error } = await supabase
+                .from('pagamentos')
+                .delete()
+                .eq('id', id);
+            if (error) throw error;
+            fetchData();
+        } catch (error) {
+            console.error('Erro ao excluir pagamento:', error);
+        }
         setDeletingId(null);
     };
 
@@ -238,7 +301,7 @@ const Pagamentos: React.FC = () => {
                                 <svg className="w-6 h-6 mr-2 text-[#25D366] fill-current" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>
                                 Configurações Adm
                             </h2>
-                            <button onClick={() => setIsConfigOpen(false)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400">
+                            <button onClick={handleCloseConfig} className="text-gray-500 hover:text-gray-700 dark:text-gray-400">
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
@@ -297,7 +360,7 @@ const Pagamentos: React.FC = () => {
                                 </button>
                             </div>
 
-                            <button onClick={() => setIsConfigOpen(false)} className="w-full py-3 mt-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-all font-bold">
+                            <button onClick={handleCloseConfig} className="w-full py-3 mt-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-all font-bold">
                                 Salvar Configurações
                             </button>
                         </div>

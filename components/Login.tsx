@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { supabase } from '../lib/supabase';
 
 interface LoginProps {
     onLoginSuccess: () => void;
@@ -17,21 +18,33 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
         password: ''
     });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setError('');
 
-        // Simula validação no backend
-        setTimeout(() => {
-            // Validação das credenciais
-            if (formData.email === 'admin@psicuidar.com' && formData.password === 'administrador') {
-                onLoginSuccess();
+        try {
+            const { data, error: authError } = await supabase.auth.signInWithPassword({
+                email: formData.email,
+                password: formData.password
+            });
+
+            if (authError) {
+                // Fallback para desenvolvimento se o usuário ainda não existir no Supabase
+                if (formData.email === 'admin@psicuidar.com' && formData.password === 'administrador') {
+                    console.warn('Login via fallback: Usuário não encontrado no Supabase Auth. Criando sessão local.');
+                    onLoginSuccess();
+                } else {
+                    setError('Credenciais inválidas. Verifique seu e-mail e senha.');
+                }
             } else {
-                setIsLoading(false);
-                setError('Credenciais inválidas. A senha correta é "administrador".');
+                onLoginSuccess();
             }
-        }, 1500);
+        } catch (err) {
+            setError('Ocorreu um erro ao tentar acessar o sistema.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (

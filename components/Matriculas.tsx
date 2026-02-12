@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
 interface Matricula {
     id: string;
@@ -11,16 +12,32 @@ interface Matricula {
 }
 
 const Matriculas: React.FC = () => {
-    // Carregar dados iniciais do localStorage se existirem
-    const [matriculas, setMatriculas] = useState<Matricula[]>(() => {
-        const saved = localStorage.getItem('psicuidar_matriculas');
-        return saved ? JSON.parse(saved) : [];
-    });
+    const [matriculas, setMatriculas] = useState<Matricula[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    // Salvar no localStorage sempre que houver mudança
-    React.useEffect(() => {
-        localStorage.setItem('psicuidar_matriculas', JSON.stringify(matriculas));
-    }, [matriculas]);
+    // Carregar dados do Supabase
+    const fetchMatriculas = async () => {
+        setLoading(true);
+        try {
+            const { data, error } = await supabase
+                .from('matriculas')
+                .select('*')
+                .order('nome', { ascending: true });
+
+            if (error) throw error;
+            if (data) {
+                setMatriculas(data);
+            }
+        } catch (error) {
+            console.error('Erro ao buscar matrículas:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchMatriculas();
+    }, []);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingMatricula, setEditingMatricula] = useState<Matricula | null>(null);
@@ -70,29 +87,46 @@ const Matriculas: React.FC = () => {
         setIsModalOpen(true);
     };
 
-    const handleSave = (e: React.FormEvent) => {
+    const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         const valorNum = parseFloat(formData.valor.replace(',', '.')) || 0;
 
-        if (editingMatricula) {
-            setMatriculas(prev => prev.map(m =>
-                m.id === editingMatricula.id
-                    ? { ...m, ...formData, valor: valorNum }
-                    : m
-            ));
-        } else {
-            const newMatricula: Matricula = {
-                id: Date.now().toString(),
-                ...formData,
-                valor: valorNum
-            };
-            setMatriculas(prev => [...prev, newMatricula]);
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error('Usuário não autenticado');
+
+            if (editingMatricula) {
+                const { error } = await supabase
+                    .from('matriculas')
+                    .update({ ...formData, valor: valorNum })
+                    .eq('id', editingMatricula.id);
+                if (error) throw error;
+            } else {
+                const { error } = await supabase
+                    .from('matriculas')
+                    .insert([{ ...formData, valor: valorNum, user_id: user.id }]);
+                if (error) throw error;
+            }
+            fetchMatriculas();
+        } catch (error) {
+            console.error('Erro ao salvar matrícula:', error);
+            alert('Erro ao salvar os dados. Verifique sua conexão.');
         }
+
         setIsModalOpen(false);
     };
 
-    const handleDelete = (id: string) => {
-        setMatriculas(prev => prev.filter(m => m.id !== id));
+    const handleDelete = async (id: string) => {
+        try {
+            const { error } = await supabase
+                .from('matriculas')
+                .delete()
+                .eq('id', id);
+            if (error) throw error;
+            fetchMatriculas();
+        } catch (error) {
+            console.error('Erro ao excluir matrícula:', error);
+        }
         setDeletingId(null);
     };
 

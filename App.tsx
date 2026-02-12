@@ -213,7 +213,8 @@ const App: React.FC = () => {
     setIsAuthenticated(true);
   }, []);
 
-  const handleLogout = useCallback(() => {
+  const handleLogout = useCallback(async () => {
+    await supabase.auth.signOut();
     sessionStorage.removeItem('psicuidar_auth');
     setIsAuthenticated(false);
   }, []);
@@ -221,6 +222,9 @@ const App: React.FC = () => {
   // Adicionar agendamento
   const addAppointment = useCallback(async (newAppointment: Omit<Appointment, 'id' | 'status'>) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
 
@@ -232,8 +236,9 @@ const App: React.FC = () => {
           date_time: newAppointment.dateTime.toISOString(),
           session_type: newAppointment.sessionType,
           status: AppointmentStatus.PENDENTE,
-          is_viewed: true, // Novo agendamento começa como visto
-          token_expires_at: expiresAt.toISOString()
+          is_viewed: true,
+          token_expires_at: expiresAt.toISOString(),
+          user_id: user.id
         }])
         .select();
 
