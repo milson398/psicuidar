@@ -91,7 +91,7 @@ const Intervencao: React.FC = () => {
         e.preventDefault();
 
         if (!selectedPatient) {
-            alert('Por favor, selecione um paciente no menu lateral antes de gerar o plano.');
+            alert('Por favor, selecione um aluno no menu lateral antes de gerar o plano.');
             return;
         }
 
@@ -147,7 +147,7 @@ const Intervencao: React.FC = () => {
 
                 <div class="info-box">
                     <div class="info-row">
-                        <span><span class="info-label">Paciente:</span> ${selectedPatient}</span>
+                        <span><span class="info-label">Aluno:</span> ${selectedPatient}</span>
                         <span><span class="info-label">Data:</span> ${date}</span>
                     </div>
                     <div class="info-row">
@@ -267,13 +267,13 @@ const Intervencao: React.FC = () => {
 
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-blue-100 mb-1">Paciente</label>
+                                <label className="block text-sm font-medium text-blue-100 mb-1">Aluno</label>
                                 <select
                                     className="w-full p-2 rounded bg-blue-700 border border-blue-500 text-white focus:ring-2 focus:ring-white outline-none cursor-pointer"
                                     value={selectedPatient}
                                     onChange={(e) => setSelectedPatient(e.target.value)}
                                 >
-                                    <option value="" className="text-gray-500">Selecione o paciente...</option>
+                                    <option value="" className="text-gray-500">Selecione o aluno...</option>
                                     <option value="João Silva">João Silva</option>
                                     <option value="Maria Oliveira">Maria Oliveira</option>
                                     <option value="Pedro Santos">Pedro Santos</option>
@@ -311,7 +311,7 @@ const Intervencao: React.FC = () => {
                                     : 'bg-blue-800 text-blue-400 cursor-not-allowed opacity-75'
                                     }`}
                                 disabled={!selectedPatient || planActivities.length === 0}
-                                title={!selectedPatient ? "Selecione um paciente" : planActivities.length === 0 ? "Adicione atividades" : "Imprimir Plano"}
+                                title={!selectedPatient ? "Selecione um aluno" : planActivities.length === 0 ? "Adicione atividades" : "Imprimir Plano"}
                             >
                                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
                                 Gerar PDF do Plano

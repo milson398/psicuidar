@@ -30,12 +30,25 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             });
 
             if (authError) {
-                // Fallback para desenvolvimento se o usuário ainda não existir no Supabase
-                if (formData.email === 'admin@psicuidar.com' && formData.password === 'administrador') {
-                    console.warn('Login via fallback: Usuário não encontrado no Supabase Auth. Criando sessão local.');
+                // Tentar registrar o usuário se o login falhar
+                console.log("Login falhou, tentando registrar usuário...", authError.message);
+                const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+                    email: formData.email,
+                    password: formData.password
+                });
+
+                if (signUpError) {
+                    console.error("Erro ao registrar:", signUpError);
+                    // Fallback mantido apenas se auterregistro falhar catastróficamente
+                    if (formData.email === 'admin@psicuidar.com' && formData.password === 'administrador') {
+                        console.warn('Login via fallback (SEM ACESSO AO BANCO): Usuário não encontrado e não foi possível criar.');
+                        onLoginSuccess();
+                    } else {
+                        setError('Credenciais inválidas e falha ao criar conta automáticmente.');
+                    }
+                } else if (signUpData.user) {
+                    console.log("Usuário criado e logado com sucesso!", signUpData);
                     onLoginSuccess();
-                } else {
-                    setError('Credenciais inválidas. Verifique seu e-mail e senha.');
                 }
             } else {
                 onLoginSuccess();
@@ -79,7 +92,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                             <span className="text-blue-400">Psicopedagogia</span>
                         </h2>
                         <p className="text-blue-100/80 text-lg max-w-md leading-relaxed">
-                            Organize sua clínica, potencialize seus atendimentos e tenha mais tempo para o que realmente importa: seus pacientes.
+                            Organize sua clínica, potencialize seus atendimentos e tenha mais tempo para o que realmente importa: seus alunos.
                         </p>
                     </div>
 
@@ -153,7 +166,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                             <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
                         </div>
                         <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-                            Painel Administrativo
+                            Área do Profissional
                         </h2>
                         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                             Insira a senha de administrador para acessar.

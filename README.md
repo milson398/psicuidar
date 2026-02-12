@@ -1,12 +1,12 @@
 # PsiCuidar - Sistema de Gestão para Psicopedagogia
 
-O **PsiCuidar** é uma plataforma completa desenvolvida para facilitar a gestão clínica de psicopedagogos, oferecendo ferramentas para agendamento, controle de pacientes, relatórios gerenciais e integração inteligente com WhatsApp.
+O **PsiCuidar** é uma plataforma completa desenvolvida para facilitar a gestão clínica de psicopedagogos, oferecendo ferramentas para agendamento, controle de alunos, relatórios gerenciais e integração inteligente com WhatsApp.
 
 ## 🚀 Funcionalidades Principais
 
 - **Dashboard Inteligente**: Visão geral de atendimentos, faturamento e alertas.
 - **Gestão de Agenda**: Cadastro, edição e acompanhamento de sessões.
-- **Confirmação via WhatsApp**: Sistema automatizado de links para confirmação/cancelamento por parte dos pacientes.
+- **Confirmação via WhatsApp**: Sistema automatizado de links para confirmação/cancelamento por parte dos alunos.
 - **Relatórios Gerenciais**: Análise de produtividade e financeira.
 - **Interface Moderna**: Design responsivo com suporte a Dark Mode.
 

@@ -15,7 +15,7 @@ const AgendaModal: React.FC<{
     onSave: (appointment: Omit<Appointment, 'id' | 'status'>) => void;
     initialData?: Appointment | null;
 }> = ({ isOpen, onClose, onSave, initialData }) => {
-    const [patientName, setPatientName] = useState('');
+    const [studentName, setStudentName] = useState('');
     const [whatsApp, setWhatsApp] = useState('');
     const [date, setDate] = useState('');
     const [time, setTime] = useState('');
@@ -24,7 +24,7 @@ const AgendaModal: React.FC<{
 
     useEffect(() => {
         if (initialData) {
-            setPatientName(initialData.patientName);
+            setStudentName(initialData.studentName);
             setWhatsApp(initialData.whatsapp || '');
             const yyyy = initialData.dateTime.getFullYear();
             const mm = String(initialData.dateTime.getMonth() + 1).padStart(2, '0');
@@ -37,7 +37,7 @@ const AgendaModal: React.FC<{
 
             setSessionType(initialData.sessionType);
         } else {
-            setPatientName('');
+            setStudentName('');
             setWhatsApp('');
             setDate('');
             setTime('');
@@ -53,7 +53,7 @@ const AgendaModal: React.FC<{
         const [hours, minutes] = time.split(':').map(Number);
         const dateTime = new Date(year, month - 1, day, hours, minutes);
 
-        onSave({ patientName, whatsapp: whatsApp, dateTime, sessionType });
+        onSave({ studentName, whatsapp: whatsApp, dateTime, sessionType });
         onClose();
     };
 
@@ -66,31 +66,31 @@ const AgendaModal: React.FC<{
                 <form onSubmit={handleSubmit}>
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Nome do Paciente</label>
-                            <input type="text" placeholder="Ex: João Silva" value={patientName} onChange={e => setPatientName(e.target.value)} required className="w-full p-2.5 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none" />
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Nome do Aluno</label>
+                            <input type="text" placeholder="Ex: João Silva" value={studentName} onChange={e => setStudentName(e.target.value)} required className="w-full p-2.5 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" />
                         </div>
 
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">WhatsApp</label>
-                            <input type="tel" placeholder="Ex: 5511999999999" value={whatsApp} onChange={e => setWhatsApp(e.target.value)} required className="w-full p-2.5 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-green-500 outline-none" />
+                            <input type="tel" placeholder="Ex: 5511999999999" value={whatsApp} onChange={e => setWhatsApp(e.target.value)} required className="w-full p-2.5 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-green-500 outline-none" />
                             <p className="text-xs text-gray-500 mt-1">Digite apenas números (com DDD).</p>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Data</label>
-                                <input type="date" value={date} onChange={e => setDate(e.target.value)} required className="w-full p-2.5 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-blue-500" />
+                                <input type="date" value={date} onChange={e => setDate(e.target.value)} required className="w-full p-2.5 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500" />
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Horário</label>
-                                <input type="time" value={time} onChange={e => setTime(e.target.value)} required className="w-full p-2.5 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-blue-500" />
+                                <input type="time" value={time} onChange={e => setTime(e.target.value)} required className="w-full p-2.5 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500" />
                             </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Duração</label>
-                                <select value={duration} onChange={e => setDuration(e.target.value)} className="w-full p-2.5 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                <select value={duration} onChange={e => setDuration(e.target.value)} className="w-full p-2.5 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                                     <option value="30">30 min</option>
                                     <option value="45">45 min</option>
                                     <option value="60">01:00 hora</option>
@@ -99,7 +99,7 @@ const AgendaModal: React.FC<{
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Tipo</label>
-                                <select value={sessionType} onChange={e => setSessionType(e.target.value as any)} className="w-full p-2.5 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                <select value={sessionType} onChange={e => setSessionType(e.target.value as any)} className="w-full p-2.5 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                                     <option value="Avaliação">Avaliação</option>
                                     <option value="Intervenção">Intervenção</option>
                                     <option value="Devolutiva">Devolutiva</option>
@@ -224,7 +224,7 @@ const MinhaAgenda: React.FC<MinhaAgendaProps> = ({ appointments, onAddAppointmen
 
     const handleWhatsAppClick = async (appointment: Appointment) => {
         if (!appointment.whatsapp) {
-            alert('Número do WhatsApp não cadastrado para este paciente.');
+            alert('Número do WhatsApp não cadastrado para este aluno.');
             return;
         }
 
@@ -245,7 +245,7 @@ const MinhaAgenda: React.FC<MinhaAgendaProps> = ({ appointments, onAddAppointmen
                 shortenUrl(`${baseUrl}/?token=${appointment.confirmationToken}&res=resched`)
             ]);
 
-            const message = `Olá, *${appointment.patientName}*! Tudo bem?\n\n` +
+            const message = `Olá, *${appointment.studentName}*! Tudo bem?\n\n` +
                 `Passando para lembrar do seu agendamento de *${appointment.sessionType}* no dia *${appointment.dateTime.toLocaleDateString('pt-BR')}* às *${appointment.dateTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}*.\n\n` +
                 `Por favor, responda clicando em um dos links abaixo:\n\n` +
                 `✅ *CONFIRMAR*:\n🔗 Link Seguro PsiCuidar:\n${shortConfirm}\n\n` +
@@ -316,7 +316,7 @@ const MinhaAgenda: React.FC<MinhaAgendaProps> = ({ appointments, onAddAppointmen
                                                     {app.dateTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                                                 </span>
                                                 <div className="ml-4 border-l pl-4 border-gray-200 dark:border-gray-700">
-                                                    <h4 className="font-bold text-gray-900 dark:text-white">{app.patientName}</h4>
+                                                    <h4 className="font-bold text-gray-900 dark:text-white">{app.studentName}</h4>
                                                     <span className="text-sm text-gray-500 dark:text-gray-400">{app.sessionType}</span>
                                                 </div>
                                             </div>

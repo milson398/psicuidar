@@ -200,7 +200,7 @@ const Relatorios: React.FC<RelatoriosProps> = ({ appointments }) => {
                                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                     {displayedAppointments.map((app) => (
                                         <tr key={app.id}>
-                                            <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{app.patientName}</td>
+                                            <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{app.studentName}</td>
                                             <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{app.dateTime.toLocaleDateString('pt-BR')}</td>
                                             <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{app.sessionType}</td>
                                             <td className="px-4 py-4 whitespace-nowrap text-center">

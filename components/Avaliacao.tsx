@@ -121,14 +121,14 @@ const Avaliacao: React.FC = () => {
                         <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Registrar Avaliação</h2>
                         <form onSubmit={handleSave}>
                             <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Paciente</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Aluno</label>
                                 <input
                                     type="text"
                                     required
                                     className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-gray-900 dark:text-white bg-white"
                                     value={newName}
                                     onChange={e => setNewName(e.target.value)}
-                                    placeholder="Nome do paciente"
+                                    placeholder="Nome do aluno"
                                 />
                             </div>
                             <div className="mb-4">

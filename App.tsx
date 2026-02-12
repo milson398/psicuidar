@@ -44,30 +44,33 @@ const App: React.FC = () => {
     if (!silent) setIsLoading(true);
     setErrorStatus(null);
     try {
-      const { data, error } = await supabase
-        .from('appointments')
-        .select('*')
-        .order('date_time', { ascending: true });
+      const { data: { user } } = await supabase.auth.getUser();
 
-      if (error) {
-        console.error("Erro no select:", error);
-        throw error;
-      } else {
-        console.log("Dados retornados:", data);
-      }
+      if (user) {
+        const { data, error } = await supabase
+          .from('appointments')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('date_time', { ascending: true });
 
-      if (data) {
-        setAppointments(data.map(app => ({
-          id: app.id,
-          patientName: app.patient_name,
-          whatsapp: app.whatsapp,
-          dateTime: new Date(app.date_time),
-          sessionType: app.session_type as any,
-          status: app.status as AppointmentStatus,
-          confirmationToken: app.confirmation_token,
-          tokenExpiresAt: app.token_expires_at ? new Date(app.token_expires_at) : undefined,
-          isViewed: app.is_viewed
-        })));
+        if (error) {
+          console.error("Erro no select:", error);
+          throw error;
+        }
+
+        if (data) {
+          setAppointments(data.map(app => ({
+            id: app.id,
+            studentName: app.student_name || app.patient_name || app.name || app.nome || 'Sem Nome',
+            whatsapp: app.whatsapp,
+            dateTime: new Date(app.date_time),
+            sessionType: app.session_type as any,
+            status: app.status as AppointmentStatus,
+            confirmationToken: app.confirmation_token,
+            tokenExpiresAt: app.token_expires_at ? new Date(app.token_expires_at) : undefined,
+            isViewed: app.is_viewed
+          })));
+        }
       }
     } catch (error: any) {
       console.error('Error fetching appointments:', error);
@@ -94,7 +97,7 @@ const App: React.FC = () => {
           if (payload.eventType === 'INSERT') {
             const newApp: Appointment = {
               id: payload.new.id,
-              patientName: payload.new.patient_name,
+              studentName: payload.new.student_name || payload.new.patient_name || payload.new.name || payload.new.nome || 'Sem Nome',
               whatsapp: payload.new.whatsapp,
               dateTime: new Date(payload.new.date_time),
               sessionType: payload.new.session_type as any,
@@ -115,7 +118,7 @@ const App: React.FC = () => {
                 ...app,
                 status: payload.new.status,
                 isViewed: payload.new.is_viewed,
-                patientName: payload.new.patient_name,
+                studentName: payload.new.student_name || payload.new.patient_name || payload.new.name || payload.new.nome || 'Sem Nome',
                 dateTime: new Date(payload.new.date_time)
               } : app
             ));
@@ -234,11 +237,10 @@ const App: React.FC = () => {
       }
 
       if (!user) {
-        console.error("Usuário não autenticado.");
-        return;
+        console.warn("Aviso: Usuário não autenticado no Supabase. O registro será criado sem vínculo (modo legado).");
+      } else {
+        console.log("Usuário autenticado:", user.id);
       }
-
-      console.log("Usuário autenticado:", user.id);
 
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
@@ -246,27 +248,29 @@ const App: React.FC = () => {
       const { data, error } = await supabase
         .from('appointments')
         .insert({
-          patient_name: newAppointment.patientName,
+          patient_name: newAppointment.studentName,
           whatsapp: newAppointment.whatsapp,
           date_time: newAppointment.dateTime.toISOString(),
           session_type: newAppointment.sessionType,
           status: AppointmentStatus.PENDENTE,
           is_viewed: true,
           token_expires_at: expiresAt.toISOString(),
-          user_id: user.id
+          user_id: user?.id || null
         })
         .select();
 
+      console.log("Resultado do Insert (bruto):", { data, error });
+
       if (error) {
-        console.error("Erro no insert:", error);
+        console.error("Erro detalhado no insert:", error);
         throw error;
-      } else {
-        console.log("Insert realizado com sucesso:", data);
       }
+
+      // FORÇAR ATUALIZAÇÃO: Se o select retornou dados, use-os. Se não (por RLS), faça um fetch novo.
       if (data && data[0]) {
         const newApp: Appointment = {
           id: data[0].id,
-          patientName: data[0].patient_name,
+          studentName: data[0].student_name || data[0].patient_name, // Mapping snake_case
           whatsapp: data[0].whatsapp,
           dateTime: new Date(data[0].date_time),
           sessionType: data[0].session_type as any,
@@ -276,9 +280,16 @@ const App: React.FC = () => {
           isViewed: data[0].is_viewed
         };
         setAppointments(prev => [...prev, newApp].sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime()));
+      } else {
+        // Se o RLS bloqueou o retorno do SELECT, buscamos tudo de novo para garantir
+        console.warn("Insert parece ter funcionado mas sem retorno de dados (provável RLS). Recarregando...");
+        fetchAppointments(true);
       }
-    } catch (error) {
+
+      alert('Agendamento salvo com sucesso!');
+    } catch (error: any) {
       console.error('Error adding appointment:', error);
+      alert('Erro ao salvar agendamento: ' + (error.message || 'Erro desconhecido. Verifique o console.'));
     }
   }, [fetchAppointments]);
 
@@ -286,7 +297,7 @@ const App: React.FC = () => {
   const editAppointment = useCallback(async (id: string, updatedData: Partial<Appointment>) => {
     try {
       const updatePayload: any = {};
-      if (updatedData.patientName) updatePayload.patient_name = updatedData.patientName;
+      if (updatedData.studentName) updatePayload.patient_name = updatedData.studentName;
       if (updatedData.whatsapp !== undefined) updatePayload.whatsapp = updatedData.whatsapp;
       if (updatedData.dateTime) updatePayload.date_time = updatedData.dateTime.toISOString();
       if (updatedData.sessionType) updatePayload.session_type = updatedData.sessionType;
@@ -341,19 +352,18 @@ const App: React.FC = () => {
   }, [fetchAppointments]);
 
   // Função para determinar a classe CSS do FUNDO da página (Atrás dos cards)
-  const getPageBackgroundClass = (color: ThemeColor) => {
-    switch (color) {
-      case 'black': return 'bg-gray-900 dark:bg-black'; // Preto
-      case 'gray': return 'bg-gray-200 dark:bg-gray-700'; // Cinza
-      case 'purple': return 'bg-purple-100 dark:bg-purple-900'; // Roxo
-      case 'green': return 'bg-green-100 dark:bg-green-900'; // Verde
-      case 'red': return 'bg-red-100 dark:bg-red-900'; // Vermelho
-      case 'white': return 'bg-white';
-      case 'blue': default: return 'bg-slate-900';
+  const getPageBackgroundClass = useCallback((bg: ThemeColor) => {
+    switch (bg) {
+      case 'black': return 'bg-gray-950';
+      case 'gray': return 'bg-gray-800';
+      case 'purple': return 'bg-purple-950';
+      case 'green': return 'bg-green-950';
+      case 'red': return 'bg-red-950';
+      case 'blue': return 'bg-blue-950';
+      case 'white': default: return 'bg-gray-50 dark:bg-gray-900';
     }
-  };
+  }, []);
 
-  // Função auxiliar para garantir contraste do texto quando o fundo for escuro
   const getPageTextClass = (color: ThemeColor) => {
     if (color === 'blue' || color === 'black') {
       return 'text-white';
@@ -465,6 +475,7 @@ const App: React.FC = () => {
           userProfile={userProfile}
           onMenuToggle={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
           onNavigate={(page) => setActivePage(page)}
+          currentPage={activePage}
         />
         <main className="flex-1 overflow-x-hidden overflow-y-auto">
           {renderContent()}

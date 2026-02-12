@@ -6,6 +6,7 @@ interface HeaderProps {
     userProfile: UserProfile;
     onMenuToggle: () => void;
     onNavigate: (page: string) => void;
+    currentPage: string;
 }
 
 interface Notification {
@@ -24,7 +25,7 @@ const initialNotifications: Notification[] = [
     { id: 4, title: 'Agendamento Cancelado', message: 'João Silva cancelou a sessão de hoje.', time: 'Ontem', read: true, type: 'error' },
 ];
 
-const Header: React.FC<HeaderProps> = ({ onLogout, userProfile, onMenuToggle, onNavigate }) => {
+const Header: React.FC<HeaderProps> = ({ onLogout, userProfile, onMenuToggle, onNavigate, currentPage }) => {
     const [profileOpen, setProfileOpen] = useState(false);
     const [notificationsOpen, setNotificationsOpen] = useState(false);
     const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
@@ -80,24 +81,24 @@ const Header: React.FC<HeaderProps> = ({ onLogout, userProfile, onMenuToggle, on
     return (
         <header className="h-16 px-4 flex items-center justify-between bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 shadow-sm z-20 relative transition-all duration-300">
             <div className="flex items-center">
-                 {/* Botão Menu Mobile */}
-                 <button 
+                {/* Botão Menu Mobile */}
+                <button
                     onClick={onMenuToggle}
                     className="md:hidden mr-3 p-2 rounded-md text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
-                 >
+                >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
-                 </button>
+                </button>
 
-                 {/* Título Desktop */}
-                 <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200 hidden sm:block">Painel Administrativo</h2>
-                 {/* Título Mobile */}
-                 <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200 block sm:hidden">PsiCuidar</h2>
+                {/* Título Desktop */}
+                <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200 hidden sm:block">{currentPage}</h2>
+                {/* Título Mobile */}
+                <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200 block sm:hidden">PsiCuidar</h2>
             </div>
-            
+
             <div className="flex items-center space-x-2 sm:space-x-4">
                 {/* NOTIFICAÇÕES */}
                 <div className="relative" ref={notificationRef}>
-                    <button 
+                    <button
                         onClick={() => setNotificationsOpen(!notificationsOpen)}
                         className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 relative transition-colors"
                     >
@@ -124,8 +125,8 @@ const Header: React.FC<HeaderProps> = ({ onLogout, userProfile, onMenuToggle, on
                                     <div className="p-4 text-center text-gray-500">Nenhuma notificação.</div>
                                 ) : (
                                     notifications.map((notification) => (
-                                        <div 
-                                            key={notification.id} 
+                                        <div
+                                            key={notification.id}
                                             onClick={() => markAsRead(notification.id)}
                                             className={`p-4 border-b border-gray-50 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${!notification.read ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}
                                         >
@@ -175,7 +176,7 @@ const Header: React.FC<HeaderProps> = ({ onLogout, userProfile, onMenuToggle, on
                         </div>
                         <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${profileOpen ? 'transform rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                     </button>
-                    
+
                     {profileOpen && (
                         <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-xl ring-1 ring-black ring-opacity-5 z-50 animate-fade-in-up origin-top-right">
                             <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
@@ -184,8 +185,8 @@ const Header: React.FC<HeaderProps> = ({ onLogout, userProfile, onMenuToggle, on
                             </div>
                             <ul className="py-1">
                                 <li>
-                                    <a 
-                                        href="#" 
+                                    <a
+                                        href="#"
                                         onClick={(e) => { e.preventDefault(); onNavigate('Configurações'); setProfileOpen(false); }}
                                         className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                                     >
@@ -194,8 +195,8 @@ const Header: React.FC<HeaderProps> = ({ onLogout, userProfile, onMenuToggle, on
                                     </a>
                                 </li>
                                 <li>
-                                    <a 
-                                        href="#" 
+                                    <a
+                                        href="#"
                                         onClick={(e) => { e.preventDefault(); onNavigate('Configurações'); setProfileOpen(false); }}
                                         className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                                     >

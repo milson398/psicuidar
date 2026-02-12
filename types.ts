@@ -9,7 +9,7 @@ export enum AppointmentStatus {
 
 export interface Appointment {
   id: string;
-  patientName: string;
+  studentName: string;
   whatsapp?: string;
   dateTime: Date;
   sessionType: 'Avaliação' | 'Intervenção' | 'Devolutiva';
