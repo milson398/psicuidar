@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { UserProfile, ThemeColor } from '../types';
+import { UserProfile, ThemeColor } from '../../types';
 
 interface ConfiguracoesProps {
     userProfile: UserProfile;

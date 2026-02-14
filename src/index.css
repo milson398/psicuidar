@@ -1,0 +1,26 @@
+/* ============================= */
+/* EFEITO NEON VERDE CONFIRMADO */
+/* ============================= */
+
+@keyframes neon-green-blink {
+  0%, 100% {
+    box-shadow: 0 0 5px #39ff14, 0 0 10px #39ff14;
+    border-color: #39ff14;
+    background-color: #166534;
+    color: #ffffff;
+    transform: scale(1.05);
+  }
+  50% {
+    box-shadow: 0 0 15px #39ff14, 0 0 30px #39ff14;
+    border-color: #39ff14;
+    background-color: #15803d;
+    color: #ffffff;
+    transform: scale(1.08);
+  }
+}
+
+.animate-neon-green {
+  animation: neon-green-blink 1s infinite;
+  border: 2px solid #39ff14;
+  border-radius: 8px;
+}

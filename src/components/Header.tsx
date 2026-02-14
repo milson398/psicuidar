@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { UserProfile } from '../types';
+import { UserProfile } from '../../types';
 
 interface HeaderProps {
     onLogout: () => void;

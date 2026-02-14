@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Appointment, AppointmentStatus } from '../types';
+import { Appointment, AppointmentStatus } from '../../types';
 
 interface RelatoriosProps {
     appointments: Appointment[];

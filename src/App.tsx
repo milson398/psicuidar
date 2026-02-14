@@ -11,7 +11,7 @@ import Matriculas from './components/Matriculas';
 import Pagamentos from './components/Pagamentos';
 import Configuracoes from './components/Configuracoes';
 import { Appointment, AppointmentStatus, UserProfile, ThemeColor } from './types';
-import { supabase } from './lib/supabase';
+import { supabase } from './services/supabase';
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
