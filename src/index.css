@@ -1,26 +1,110 @@
-/* ============================= */
-/* EFEITO NEON VERDE CONFIRMADO */
-/* ============================= */
-
+/* ========================= */
+/* NEON VERDE - CONFIRMADO  */
+/* ========================= */
 @keyframes neon-green-blink {
   0%, 100% {
-    box-shadow: 0 0 5px #39ff14, 0 0 10px #39ff14;
+    box-shadow: 0 0 5px #39ff14, 0 0 10px #39ff14, 0 0 20px #39ff14, 0 0 40px #32CD32;
     border-color: #39ff14;
     background-color: #166534;
     color: #ffffff;
     transform: scale(1.05);
   }
+
   50% {
-    box-shadow: 0 0 15px #39ff14, 0 0 30px #39ff14;
-    border-color: #39ff14;
-    background-color: #15803d;
-    color: #ffffff;
-    transform: scale(1.08);
+    box-shadow: 0 0 2px #39ff14, 0 0 5px #39ff14;
+    border-color: #32CD32;
+    background-color: #14532d;
+    color: #e0e0e0;
+    transform: scale(1);
   }
 }
 
 .animate-neon-green {
-  animation: neon-green-blink 1s infinite;
+  animation: neon-green-blink 1.2s infinite ease-in-out alternate;
   border: 2px solid #39ff14;
+  border-radius: 8px;
+}
+
+
+/* ========================= */
+/* NEON VERMELHO - CANCELADO */
+/* ========================= */
+@keyframes neon-red-blink {
+  0%, 100% {
+    box-shadow: 0 0 5px #FF0000, 0 0 10px #FF0000, 0 0 20px #FF0000, 0 0 40px #8B0000;
+    border-color: #FF0000;
+    background-color: #991b1b;
+    color: #ffffff;
+    transform: scale(1.05);
+  }
+
+  50% {
+    box-shadow: 0 0 2px #FF0000, 0 0 5px #FF0000;
+    border-color: #8B0000;
+    background-color: #7f1d1d;
+    color: #e0e0e0;
+    transform: scale(1);
+  }
+}
+
+.animate-neon-red {
+  animation: neon-red-blink 1.2s infinite ease-in-out alternate;
+  border: 2px solid #FF0000;
+  border-radius: 8px;
+}
+
+
+/* ========================= */
+/* NEON AMARELO - REMARCAR  */
+/* ========================= */
+@keyframes neon-yellow-blink {
+  0%, 100% {
+    box-shadow: 0 0 5px #FFD700, 0 0 10px #FFD700, 0 0 20px #FFD700, 0 0 40px #FFA500;
+    border-color: #FFD700;
+    background-color: #854d0e;
+    color: #ffffff;
+    transform: scale(1.05);
+  }
+
+  50% {
+    box-shadow: 0 0 2px #FFD700, 0 0 5px #FFD700;
+    border-color: #FFA500;
+    background-color: #713f12;
+    color: #e0e0e0;
+    transform: scale(1);
+  }
+}
+
+.animate-neon-yellow {
+  animation: neon-yellow-blink 1.2s infinite ease-in-out alternate;
+  border: 2px solid #FFD700;
+  border-radius: 8px;
+}
+
+
+/* ========================= */
+/* NEON AZUL - PENDENTE     */
+/* ========================= */
+@keyframes neon-blue-blink {
+  0%, 100% {
+    box-shadow: 0 0 5px #00BFFF, 0 0 10px #00BFFF, 0 0 20px #00BFFF, 0 0 40px #0000FF;
+    border-color: #00BFFF;
+    background-color: #1e40af;
+    color: #ffffff;
+    transform: scale(1.05);
+  }
+
+  50% {
+    box-shadow: 0 0 2px #00BFFF, 0 0 5px #00BFFF;
+    border-color: #0000FF;
+    background-color: #1e3a8a;
+    color: #e0e0e0;
+    transform: scale(1);
+  }
+}
+
+.animate-neon-blue {
+  animation: neon-blue-blink 1.2s infinite ease-in-out alternate;
+  border: 2px solid #00BFFF;
   border-radius: 8px;
 }
