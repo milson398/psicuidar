@@ -19,33 +19,32 @@ const AppointmentCard: React.FC<{ appointment: Appointment, onUpdateStatus: (id:
   };
 
   const getButtonClasses = (status: AppointmentStatus, buttonType: 'confirm' | 'cancel' | 'reschedule', isViewed: boolean) => {
-    // Adicionado whitespace-nowrap para impedir quebra de linha do texto do botão
-    const baseClasses = "flex-1 py-2 px-1 text-xs sm:text-sm rounded-lg font-bold text-white transition-all duration-300 focus:outline-none shadow-md transform active:scale-95 whitespace-nowrap";
+    const baseClasses = "flex-1 py-2.5 px-2 text-xs sm:text-sm rounded-lg font-black text-white transition-all duration-300 focus:outline-none shadow-lg transform active:scale-95 whitespace-nowrap border-2";
 
     // O NEON SÓ ATIVA SE O PSICOPEDAGOGO AINDA NÃO VIU A RESPOSTA (isViewed === false)
     if (status === AppointmentStatus.PENDENTE && !isViewed) {
-      return `${baseClasses} bg-blue-600 animate-neon-blue`;
+      return `${baseClasses} bg-blue-600 border-blue-400 animate-neon-blue`;
     }
 
     if (buttonType === 'confirm') {
       if (status === AppointmentStatus.CONFIRMADO && !isViewed) {
-        return `${baseClasses} animate-neon-green`;
+        return `${baseClasses} bg-green-700 border-green-400 animate-neon-green`;
       }
-      return `${baseClasses} bg-green-600 hover:bg-green-700 text-white`;
+      return `${baseClasses} bg-green-600 border-green-700 hover:bg-green-700 opacity-90`;
     }
 
     if (buttonType === 'cancel') {
       if (status === AppointmentStatus.CANCELADO && !isViewed) {
-        return `${baseClasses} animate-neon-red`;
+        return `${baseClasses} bg-red-700 border-red-400 animate-neon-red`;
       }
-      return `${baseClasses} bg-red-600 hover:bg-red-700 text-white`;
+      return `${baseClasses} bg-red-600 border-red-700 hover:bg-red-700 opacity-90`;
     }
 
     if (buttonType === 'reschedule') {
       if (status === AppointmentStatus.REMARCAR && !isViewed) {
-        return `${baseClasses} animate-neon-yellow`;
+        return `${baseClasses} bg-yellow-700 border-yellow-400 animate-neon-yellow`;
       }
-      return `${baseClasses} bg-yellow-600 hover:bg-yellow-700 text-white`;
+      return `${baseClasses} bg-yellow-600 border-yellow-700 hover:bg-yellow-700 opacity-90`;
     }
 
     return baseClasses;

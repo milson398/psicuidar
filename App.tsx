@@ -19,10 +19,7 @@ const App: React.FC = () => {
   });
   const [activePage, setActivePage] = useState<string>('Dashboard');
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(() => {
-    // Se já estiver logado via sessionStorage, começamos carregando os dados
-    return sessionStorage.getItem('psicuidar_auth') === 'true';
-  });
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isStudentResponse, setIsStudentResponse] = useState<boolean>(false);
@@ -146,15 +143,28 @@ const App: React.FC = () => {
   }, [isAuthenticated, fetchAppointments]);
 
   useEffect(() => {
-    // 2. Lógica para processar resposta do aluno via Link (WhatsApp)
-    const handleStudentResponse = async () => {
+    const checkAuthAndResponse = async () => {
+      setIsLoading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+
+      const isAuthInSession = sessionStorage.getItem('psicuidar_auth') === 'true';
+
+      if (!session && isAuthInSession) {
+        console.warn("Sessão Supabase não encontrada. Resetando login...");
+        sessionStorage.removeItem('psicuidar_auth');
+        setIsAuthenticated(false);
+      } else if (session) {
+        setIsAuthenticated(true);
+        sessionStorage.setItem('psicuidar_auth', 'true');
+      }
+
+      // 2. Lógica para processar resposta do aluno via Link (WhatsApp)
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('token');
       const response = urlParams.get('res');
 
       if (token && response) {
-        setIsStudentResponse(true); // Bloqueia a tela de login para o aluno
-        setIsLoading(true);
+        setIsStudentResponse(true);
         try {
           let newStatus: AppointmentStatus | null = null;
           if (response === 'confirm') newStatus = AppointmentStatus.CONFIRMADO;
@@ -169,45 +179,28 @@ const App: React.FC = () => {
               .single();
 
             if (fetchError || !appData) throw new Error('Agendamento não encontrado.');
-
-            if (!appData.token_expires_at) {
-              throw new Error('Link inválido.');
-            }
+            if (!appData.token_expires_at) throw new Error('Link inválido.');
 
             const expiresAt = new Date(appData.token_expires_at);
-
-            if (isNaN(expiresAt.getTime())) {
-              throw new Error('Link inválido.');
-            }
-
-            if (new Date() > expiresAt) {
-              throw new Error('Link expirado.');
+            if (isNaN(expiresAt.getTime()) || new Date() > expiresAt) {
+              throw new Error('Link expirado ou inválido.');
             }
 
             await supabase
               .from('appointments')
-              .update({
-                status: newStatus,
-                is_viewed: false
-              })
+              .update({ status: newStatus, is_viewed: false })
               .eq('confirmation_token', token);
           }
         } catch (err: any) {
           console.error('Erro ao processar:', err);
           setIsStudentResponse(false);
           alert(err.message || 'Erro ao processar sua resposta.');
-        } finally {
-          setIsLoading(false);
         }
       }
+      setIsLoading(false);
     };
 
-    handleStudentResponse();
-    // Se não for uma resposta de aluno e não estivermos logados, paramos o loading
-    const urlParams = new URLSearchParams(window.location.search);
-    if (!urlParams.get('token') && sessionStorage.getItem('psicuidar_auth') !== 'true') {
-      setIsLoading(false);
-    }
+    checkAuthAndResponse();
   }, []);
 
   useEffect(() => {
@@ -239,7 +232,7 @@ const App: React.FC = () => {
       if (!user) {
         console.warn("Aviso: Usuário não autenticado no Supabase. O registro será criado sem vínculo (modo legado).");
       } else {
-        console.log("Usuário autenticado:", user.id);
+        console.log("Usuário autenticado:", user?.id);
       }
 
       const expiresAt = new Date();
@@ -255,7 +248,7 @@ const App: React.FC = () => {
           status: AppointmentStatus.PENDENTE,
           is_viewed: true,
           token_expires_at: expiresAt.toISOString(),
-          user_id: user?.id || null
+          user_id: user?.id
         })
         .select();
 
@@ -285,8 +278,6 @@ const App: React.FC = () => {
         console.warn("Insert parece ter funcionado mas sem retorno de dados (provável RLS). Recarregando...");
         fetchAppointments(true);
       }
-
-      alert('Agendamento salvo com sucesso!');
     } catch (error: any) {
       console.error('Error adding appointment:', error);
       alert('Erro ao salvar agendamento: ' + (error.message || 'Erro desconhecido. Verifique o console.'));
@@ -439,15 +430,70 @@ const App: React.FC = () => {
   };
 
   if (isStudentResponse && !isAuthenticated) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const resValue = urlParams.get('res');
+
+    let statusText = "Sucesso!";
+    let statusColorClass = "from-blue-400 to-cyan-400";
+    let statusIcon = (
+      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+    );
+    let neonClass = "shadow-[0_0_30px_rgba(59,130,246,0.5)]";
+
+    if (resValue === 'confirm') {
+      statusText = "Confirmado!";
+      statusColorClass = "from-green-400 to-emerald-500";
+      neonClass = "shadow-[0_0_40px_rgba(34,197,94,0.6)]";
+    } else if (resValue === 'cancel') {
+      statusText = "Cancelado";
+      statusColorClass = "from-red-400 to-rose-500";
+      statusIcon = (
+        <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
+      );
+      neonClass = "shadow-[0_0_40px_rgba(239,68,68,0.6)]";
+    } else if (resValue === 'resched') {
+      statusText = "Solicitação Enviada!";
+      statusColorClass = "from-yellow-400 to-amber-500";
+      statusIcon = (
+        <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+      );
+      neonClass = "shadow-[0_0_40px_rgba(234,179,8,0.6)]";
+    }
+
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-slate-900 text-white p-6 text-center">
-        <div className="bg-slate-800 p-10 rounded-3xl shadow-2xl border border-blue-500/30 max-w-sm animate-fade-in">
-          <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(34,197,94,0.5)]">
-            <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0f1e] text-white p-6 relative overflow-hidden">
+        {/* Background Decorative Blobs */}
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px] animate-pulse"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 rounded-full blur-[120px] animate-pulse delay-700"></div>
+
+        <div className="relative z-10 w-full max-w-md">
+          <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-10 shadow-2xl overflow-hidden relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
+
+            <div className={`w-24 h-24 rounded-3xl flex items-center justify-center mx-auto mb-8 transition-all duration-500 bg-gradient-to-br ${statusColorClass} ${neonClass} transform group-hover:scale-110`}>
+              {statusIcon}
+            </div>
+
+            <h2 className={`text-3xl font-black mb-4 tracking-tight text-transparent bg-clip-text bg-gradient-to-r ${statusColorClass}`}>
+              {statusText}
+            </h2>
+
+            <p className="text-slate-300 text-lg font-medium leading-relaxed">
+              Sua resposta foi processada com sucesso e enviada para o seu psicopedagogo.
+            </p>
+
+            <div className="mt-10 pt-8 border-t border-white/5">
+              <div className="flex items-center justify-center gap-2 text-slate-500 mb-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping"></span>
+                <p className="text-sm font-semibold tracking-wider uppercase">PsiCuidar</p>
+              </div>
+              <p className="text-slate-500 text-xs italic">Você já pode fechar esta aba com segurança.</p>
+            </div>
           </div>
-          <h2 className="text-2xl font-black mb-3 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-green-400">Sucesso!</h2>
-          <p className="text-slate-300 text-lg">Sua resposta foi enviada para o seu psicopedagogo.</p>
-          <p className="mt-8 text-slate-500 text-sm italic">Você já pode fechar esta aba.</p>
+
+          <div className="mt-8 text-center animate-bounce">
+            <p className="text-slate-600 text-sm">Tecnologia e Cuidado 💫</p>
+          </div>
         </div>
       </div>
     );

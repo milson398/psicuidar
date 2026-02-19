@@ -237,20 +237,19 @@ const MinhaAgenda: React.FC<MinhaAgendaProps> = ({ appointments, onAddAppointmen
         setProcessingWaId(appointment.id);
 
         try {
+            // Para funcionar no celular de qualquer pessoa, o link PRECISA ser o do Vercel (produção)
             const baseUrl = import.meta.env.VITE_PUBLIC_URL || 'https://psicuidar-jq2b.vercel.app';
 
-            const [shortConfirm, shortCancel, shortResched] = await Promise.all([
-                shortenUrl(`${baseUrl}/?token=${appointment.confirmationToken}&res=confirm`),
-                shortenUrl(`${baseUrl}/?token=${appointment.confirmationToken}&res=cancel`),
-                shortenUrl(`${baseUrl}/?token=${appointment.confirmationToken}&res=resched`)
-            ]);
+            const urlConfirm = `${baseUrl}/?token=${appointment.confirmationToken}&res=confirm`;
+            const urlCancel = `${baseUrl}/?token=${appointment.confirmationToken}&res=cancel`;
+            const urlResched = `${baseUrl}/?token=${appointment.confirmationToken}&res=resched`;
 
             const message = `Olá, *${appointment.studentName}*! Tudo bem?\n\n` +
                 `Passando para lembrar do seu agendamento de *${appointment.sessionType}* no dia *${appointment.dateTime.toLocaleDateString('pt-BR')}* às *${appointment.dateTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}*.\n\n` +
                 `Por favor, responda clicando em um dos links abaixo:\n\n` +
-                `✅ *CONFIRMAR*:\n🔗 Link Seguro PsiCuidar:\n${shortConfirm}\n\n` +
-                `❌ *CANCELAR*:\n🔗 Link Seguro PsiCuidar:\n${shortCancel}\n\n` +
-                `📅 *REMARCAR*:\n🔗 Link Seguro PsiCuidar:\n${shortResched}\n\n` +
+                `✅ *CONFIRMAR*:\n${urlConfirm}\n\n` +
+                `❌ *CANCELAR*:\n${urlCancel}\n\n` +
+                `📅 *REMARCAR*:\n${urlResched}\n\n` +
                 `*PSICUIDAR* - Sistema Próprio e Seguro 🛡️`;
 
             const waUrl = `https://wa.me/55${appointment.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
