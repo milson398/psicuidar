@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ThemeColor } from '../types';
+import { ThemeColor } from '../../types';
 
 interface SidebarProps {
   setActivePage: (page: string) => void;

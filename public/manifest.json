@@ -1,13 +1,24 @@
 {
   "name": "PsiCuidar",
   "short_name": "PsiCuidar",
+<<<<<<< HEAD
   "description": "Sistema de gestão para psicólogos",
+=======
+>>>>>>> 855f674429f9fe27a7ac43b5ad306891122bd7c5
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3b82f6",
   "icons": [
     {
+<<<<<<< HEAD
+=======
+      "src": "/icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+>>>>>>> 855f674429f9fe27a7ac43b5ad306891122bd7c5
       "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png"

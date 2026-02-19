@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Appointment, AppointmentStatus } from '../types';
-import { supabase } from '../lib/supabase';
+import { Appointment, AppointmentStatus } from '../../types';
+import { supabase } from '../services/supabase';
 
 interface MinhaAgendaProps {
     appointments: Appointment[];
