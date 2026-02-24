@@ -224,7 +224,7 @@ const MinhaAgenda: React.FC<MinhaAgendaProps> = ({ appointments, onAddAppointmen
 
     const handleWhatsAppClick = async (appointment: Appointment) => {
         if (!appointment.whatsapp) {
-            alert('Número do WhatsApp não cadastrado para este aluno.');
+            console.warn('Número do WhatsApp não cadastrado para este aluno.');
             return;
         }
 
@@ -271,7 +271,6 @@ const MinhaAgenda: React.FC<MinhaAgendaProps> = ({ appointments, onAddAppointmen
         } catch (error) {
             if (waWindow) waWindow.close();
             console.error('Erro ao preparar WhatsApp:', error);
-            alert('Houve um erro ao preparar a mensagem. Tente novamente.');
         } finally {
             setProcessingWaId(null);
         }

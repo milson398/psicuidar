@@ -280,7 +280,6 @@ const App: React.FC = () => {
       }
     } catch (error: any) {
       console.error('Error adding appointment:', error);
-      alert('Erro ao salvar agendamento: ' + (error.message || 'Erro desconhecido. Verifique o console.'));
     }
   }, [fetchAppointments]);
 
