@@ -11,6 +11,7 @@ import Matriculas from './components/Matriculas';
 import Pagamentos from './components/Pagamentos';
 import Configuracoes from './components/Configuracoes';
 import AcessoBloqueado from './components/AcessoBloqueado';
+import AdminPainel from './components/AdminPainel';
 import { Appointment, AppointmentStatus, UserProfile, ThemeColor } from './types';
 import { supabase } from './lib/supabase';
 
@@ -444,6 +445,8 @@ const App: React.FC = () => {
           currentBackground={backgroundColor}
           onUpdateBackground={setBackgroundColor}
         />;
+      case 'Painel Admin':
+        return userProfile.email === 'admin@psicuidar.com' ? <AdminPainel /> : <Dashboard appointments={appointments} onUpdateStatus={updateAppointmentStatus} />;
       default:
         return <Dashboard
           appointments={appointments}
@@ -542,6 +545,7 @@ const App: React.FC = () => {
         themeColor={themeColor}
         isOpen={isMobileSidebarOpen}
         onClose={() => setIsMobileSidebarOpen(false)}
+        userEmail={userProfile.email}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header
