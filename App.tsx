@@ -10,6 +10,7 @@ import Intervencao from './components/Intervencao';
 import Matriculas from './components/Matriculas';
 import Pagamentos from './components/Pagamentos';
 import Configuracoes from './components/Configuracoes';
+import AcessoBloqueado from './components/AcessoBloqueado';
 import { Appointment, AppointmentStatus, UserProfile, ThemeColor } from './types';
 import { supabase } from './lib/supabase';
 
@@ -23,6 +24,7 @@ const App: React.FC = () => {
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isStudentResponse, setIsStudentResponse] = useState<boolean>(false);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<'active' | 'suspended' | null>('active');
 
   // Estado Global de Tema (Sidebar/Botões) e Fundo (Página)
   const [themeColor, setThemeColor] = useState<ThemeColor>('blue');
@@ -153,9 +155,31 @@ const App: React.FC = () => {
         console.warn("Sessão Supabase não encontrada. Resetando login...");
         sessionStorage.removeItem('psicuidar_auth');
         setIsAuthenticated(false);
+        setSubscriptionStatus(null);
       } else if (session) {
         setIsAuthenticated(true);
         sessionStorage.setItem('psicuidar_auth', 'true');
+
+        // Buscar status da assinatura
+        if (session.user) {
+          try {
+            const { data: subData, error: subError } = await supabase
+              .from('subscriptions')
+              .select('status')
+              .eq('user_id', session.user.id)
+              .single();
+
+            if (!subError && subData) {
+              setSubscriptionStatus(subData.status);
+            } else {
+              // Se der erro ou não tiver (usuário antigo), assumimos ativo por segurança
+              setSubscriptionStatus('active');
+            }
+          } catch (err) {
+            console.error("Erro ao checar assinatura:", err);
+            setSubscriptionStatus('active');
+          }
+        }
       }
 
       // 2. Lógica para processar resposta do aluno via Link (WhatsApp)
@@ -500,6 +524,11 @@ const App: React.FC = () => {
 
   if (!isAuthenticated) {
     return <Login onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  // Barreira de Assinatura (Bloqueia o Dashboard e Menus)
+  if (subscriptionStatus === 'suspended') {
+    return <AcessoBloqueado onLogout={handleLogout} />;
   }
 
   return (
