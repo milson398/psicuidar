@@ -47,6 +47,15 @@ const App: React.FC = () => {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (user) {
+        // Atualizar o email do perfil para as validações de Admin
+        if (user.email) {
+          setUserProfile(prev => ({
+            ...prev,
+            email: user.email as string,
+            name: user.user_metadata?.name || user.user_metadata?.full_name || prev.name
+          }));
+        }
+
         const { data, error } = await supabase
           .from('appointments')
           .select('*')
