@@ -95,25 +95,39 @@ const Matriculas: React.FC = () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) throw new Error('Usuário não autenticado');
 
+            // Preparar dados para salvar
+            const payload = {
+                nome: formData.nome,
+                idade: formData.idade,
+                atividade: formData.atividade,
+                celular: formData.celular,
+                endereco: formData.endereco,
+                valor: valorNum,
+                user_id: user.id
+            };
+
+            console.log('Tentando salvar matrícula:', payload);
+
             if (editingMatricula) {
                 const { error } = await supabase
                     .from('matriculas')
-                    .update({ ...formData, valor: valorNum })
+                    .update(payload)
                     .eq('id', editingMatricula.id);
                 if (error) throw error;
             } else {
                 const { error } = await supabase
                     .from('matriculas')
-                    .insert([{ ...formData, valor: valorNum, user_id: user.id }]);
+                    .insert([payload]);
                 if (error) throw error;
             }
-            fetchMatriculas();
-        } catch (error) {
-            console.error('Erro ao salvar matrícula:', error);
-            alert('Erro ao salvar os dados. Verifique sua conexão.');
-        }
 
-        setIsModalOpen(false);
+            await fetchMatriculas();
+            setIsModalOpen(false);
+        } catch (error: any) {
+            console.error('Erro real ao salvar matrícula:', error);
+            const errorMessage = error.message || 'Erro desconhecido';
+            alert(`Erro ao salvar os dados: ${errorMessage}. Verifique sua conexão ou permissões.`);
+        }
     };
 
     const handleDelete = async (id: string) => {
