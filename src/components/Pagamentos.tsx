@@ -84,7 +84,15 @@ const Pagamentos: React.FC = () => {
     // Salvar configurações no Supabase
     const saveConfig = async () => {
         try {
-            const { data: { user } } = await supabase.auth.getUser();
+            console.log('PsiCuidar v6 - Salvando configs...');
+            const { data: { session } } = await supabase.auth.getSession();
+            let user = session?.user;
+
+            if (!user) {
+                const { data: userData } = await supabase.auth.getUser();
+                user = userData?.user;
+            }
+
             if (!user) return;
 
             const { error } = await supabase
@@ -115,28 +123,45 @@ const Pagamentos: React.FC = () => {
         const valorNum = parseFloat(formData.valor.replace(',', '.')) || 0;
 
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error('Não autenticado');
+            console.log('PsiCuidar v6 - Registrando pagamento...');
+            const { data: { session } } = await supabase.auth.getSession();
+            let user = session?.user;
+
+            if (!user) {
+                const { data: userData } = await supabase.auth.getUser();
+                user = userData?.user;
+            }
+
+            if (!user && sessionStorage.getItem('psicuidar_auth') !== 'true') {
+                window.location.reload();
+                return;
+            }
+
+            const payload: any = {
+                aluno: formData.aluno,
+                celular: formData.celular,
+                valor: valorNum,
+                metodo: formData.metodo,
+                data: new Date().toISOString().split('T')[0],
+                status: formData.status,
+                data_confirmacao: formData.status === 'Pago' ? new Date().toLocaleString('pt-BR') : null
+            };
+
+            if (user?.id) {
+                payload.user_id = user.id;
+            }
 
             const { error } = await supabase
                 .from('pagamentos')
-                .insert([{
-                    aluno: formData.aluno,
-                    celular: formData.celular,
-                    valor: valorNum,
-                    metodo: formData.metodo,
-                    data: new Date().toISOString().split('T')[0],
-                    status: formData.status,
-                    data_confirmacao: formData.status === 'Pago' ? new Date().toLocaleString('pt-BR') : null,
-                    user_id: user.id
-                }]);
+                .insert([payload]);
 
             if (error) throw error;
             fetchData();
             setIsModalOpen(false);
             setFormData({ aluno: '', celular: '', valor: '', metodo: 'PIX', status: 'Pendente' });
-        } catch (error) {
+        } catch (error: any) {
             console.error('Erro ao salvar pagamento:', error);
+            alert('Não foi possível registrar o pagamento. Tente recarregar a página.');
         }
     };
 
@@ -239,6 +264,7 @@ const Pagamentos: React.FC = () => {
 
     const alterarStatus = async (id: string, novoStatus: Pagamento['status']) => {
         try {
+            console.log('PsiCuidar v6 - Alterando status...');
             const { error } = await supabase
                 .from('pagamentos')
                 .update({
@@ -255,6 +281,7 @@ const Pagamentos: React.FC = () => {
 
     const handleDelete = async (id: string) => {
         try {
+            console.log('PsiCuidar v6 - Excluindo pagamento...');
             const { error } = await supabase
                 .from('pagamentos')
                 .delete()

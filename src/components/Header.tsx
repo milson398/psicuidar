@@ -29,6 +29,7 @@ const Header: React.FC<HeaderProps> = ({ onLogout, userProfile, onMenuToggle, on
     const [profileOpen, setProfileOpen] = useState(false);
     const [notificationsOpen, setNotificationsOpen] = useState(false);
     const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
+    const [historyOpen, setHistoryOpen] = useState(false);
 
     const notificationRef = useRef<HTMLDivElement>(null);
     const profileRef = useRef<HTMLDivElement>(null);
@@ -58,6 +59,11 @@ const Header: React.FC<HeaderProps> = ({ onLogout, userProfile, onMenuToggle, on
 
     const markAllAsRead = () => {
         setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    };
+
+    const deleteNotification = (id: number, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setNotifications(prev => prev.filter(n => n.id !== id));
     };
 
     const getIconColor = (type: string) => {
@@ -145,18 +151,30 @@ const Header: React.FC<HeaderProps> = ({ onLogout, userProfile, onMenuToggle, on
                                                         {notification.message}
                                                     </p>
                                                 </div>
-                                                {!notification.read && (
-                                                    <div className="ml-2 flex-shrink-0">
+                                                <div className="flex flex-col items-center ml-2 space-y-2">
+                                                    {!notification.read && (
                                                         <span className="block h-2 w-2 rounded-full bg-blue-600"></span>
-                                                    </div>
-                                                )}
+                                                    )}
+                                                    <button
+                                                        onClick={(e) => deleteNotification(notification.id, e)}
+                                                        className="p-1 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                                        title="Excluir"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     ))
                                 )}
                             </div>
                             <div className="p-2 bg-gray-50 dark:bg-gray-700/50 text-center border-t border-gray-100 dark:border-gray-700">
-                                <button className="text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 transition-colors">Ver histórico completo</button>
+                                <button
+                                    onClick={() => { setHistoryOpen(true); setNotificationsOpen(false); }}
+                                    className="text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 transition-colors"
+                                >
+                                    Ver histórico completo
+                                </button>
                             </div>
                         </div>
                     )}
@@ -215,6 +233,91 @@ const Header: React.FC<HeaderProps> = ({ onLogout, userProfile, onMenuToggle, on
                     )}
                 </div>
             </div>
+
+            {/* MODAL DE HISTÓRICO COMPLETO */}
+            {historyOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center backdrop-blur-sm p-4" onClick={() => setHistoryOpen(false)}>
+                    <div
+                        className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col animate-fade-in-up"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100 dark:border-gray-700">
+                            <div>
+                                <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Histórico de Notificações</h2>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">Todas as suas mensagens e alertas recentes.</p>
+                            </div>
+                            <button
+                                onClick={() => setHistoryOpen(false)}
+                                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors"
+                            >
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+
+                        <div className="flex-grow overflow-y-auto pr-2 space-y-4 custom-scrollbar">
+                            {notifications.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center py-20 text-gray-500">
+                                    <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                                    <p className="text-lg font-medium">Nenhuma notificação encontrada.</p>
+                                </div>
+                            ) : (
+                                notifications.map((notification) => (
+                                    <div
+                                        key={notification.id}
+                                        className={`p-5 rounded-xl border transition-all ${!notification.read
+                                            ? 'bg-blue-50/40 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/30'
+                                            : 'bg-white dark:bg-gray-800/50 border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                                            }`}
+                                    >
+                                        <div className="flex items-start">
+                                            <div className={`flex-shrink-0 p-3 rounded-full mr-4 ${getIconColor(notification.type)}`}>
+                                                {getIcon(notification.type)}
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <h3 className={`text-base font-bold ${!notification.read ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>
+                                                        {notification.title}
+                                                    </h3>
+                                                    <span className="text-xs font-medium text-gray-400">{notification.time}</span>
+                                                </div>
+                                                <p className={`text-sm leading-relaxed ${!notification.read ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-500'}`}>
+                                                    {notification.message}
+                                                </p>
+                                                <div className="mt-4 flex space-x-4">
+                                                    {!notification.read && (
+                                                        <button
+                                                            onClick={() => markAsRead(notification.id)}
+                                                            className="text-xs font-bold text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                                        >
+                                                            Marcar como lida
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        onClick={(e) => deleteNotification(notification.id, e)}
+                                                        className="text-xs font-bold text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                                                    >
+                                                        Excluir permanentemente
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
+                        <div className="mt-8 pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                            <span className="text-xs text-gray-500">{notifications.length} notificações no total</span>
+                            <button
+                                onClick={() => setHistoryOpen(false)}
+                                className="px-6 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 font-bold transition-all shadow-sm"
+                            >
+                                Fechar Histórico
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </header>
     );
 };

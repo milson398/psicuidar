@@ -92,28 +92,44 @@ const Matriculas: React.FC = () => {
         const valorNum = parseFloat(formData.valor.replace(',', '.')) || 0;
 
         try {
-            // Log de versão para depuração (v4)
-            console.log('PsiCuidar v4 - Iniciando salvamento de aluno...');
+            // Log de versão para depuração (v5)
+            console.log('PsiCuidar v5 - Iniciando salvamento de aluno...');
 
-            const { data: { user }, error: authError } = await supabase.auth.getUser();
+            // Tenta obter a sessão de forma rápida (local)
+            const { data: { session } } = await supabase.auth.getSession();
+            let user = session?.user;
 
-            // Regra: Se não houver sessão real ou erro de auth, redireciona silenciamente
-            if (authError || !user) {
-                console.error('Sessão Supabase ausente ou inválida. Redirecionando...');
+            // Se não houver sessão local, tenta validar com o servidor como fallback
+            if (!user) {
+                const { data: userData } = await supabase.auth.getUser();
+                user = userData?.user;
+            }
+
+            // Regra: Se o usuário NÃO estiver autenticado de forma alguma, redireciona para login
+            // Apenas se não houver sessão E não houver flag de auth (evita loops se o Supabase estiver lento)
+            const isLocalAuth = sessionStorage.getItem('psicuidar_auth') === 'true';
+
+            if (!user && !isLocalAuth) {
+                console.error('Sessão expirada. Redirecionando...');
                 sessionStorage.removeItem('psicuidar_auth');
                 window.location.reload();
                 return;
             }
 
-            const payload = {
+            // Preparar dados para salvar - Garantindo user_id se disponível
+            const payload: any = {
                 nome: formData.nome,
                 idade: formData.idade,
                 atividade: formData.atividade,
                 celular: formData.celular,
                 endereco: formData.endereco,
-                valor: valorNum,
-                user_id: user.id
+                valor: valorNum
             };
+
+            // Regra 3: Se houver user, enviar o id dele
+            if (user?.id) {
+                payload.user_id = user.id;
+            }
 
             if (editingMatricula) {
                 const { error: updateError } = await supabase
@@ -135,9 +151,9 @@ const Matriculas: React.FC = () => {
             await fetchMatriculas();
             setIsModalOpen(false);
         } catch (error: any) {
-            console.error('Erro ao salvar matrícula:', error);
-            // Mensagem genérica conforme Regra 1 (sem "Usuário não autenticado")
-            alert('Não foi possível concluir o salvamento. Por favor, tente recarregar a página e logar novamente se necessário.');
+            console.error('Erro ao salvar:', error);
+            // Mensagem amigável conforme Regra 1 (sem detalhes técnicos)
+            alert('Não foi possível salvar os dados. Se persistir, recarregue a página.');
         }
     };
 
@@ -197,12 +213,12 @@ const Matriculas: React.FC = () => {
                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead className="bg-gray-50 dark:bg-gray-700">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600">Nome do Aluno</th>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600">Idade</th>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600">Atividade</th>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600">Celular</th>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600">Valor (R$)</th>
-                                <th className="px-6 py-3 text-right text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600"></th>
+                                <th className="px-6 py-3 text-left text-sm font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600">Nome do Aluno</th>
+                                <th className="px-6 py-3 text-left text-sm font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600">Idade</th>
+                                <th className="px-6 py-3 text-left text-sm font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600">Atividade</th>
+                                <th className="px-6 py-3 text-left text-sm font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600">Celular</th>
+                                <th className="px-6 py-3 text-left text-sm font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600">Valor (R$)</th>
+                                <th className="px-6 py-3 text-right text-sm font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600"></th>
                             </tr>
                         </thead>
                         <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -216,20 +232,20 @@ const Matriculas: React.FC = () => {
                                 matriculas.map((m) => (
                                     <tr key={m.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                         <td className="px-6 py-4 whitespace-nowrap border border-gray-200 dark:border-gray-700">
-                                            <div className="text-sm font-bold text-gray-900 dark:text-white">{m.nome}</div>
-                                            <div className="text-xs text-gray-500 truncate max-w-[200px]">{m.endereco}</div>
+                                            <div className="text-base font-bold text-gray-900 dark:text-white">{m.nome}</div>
+                                            <div className="text-sm text-gray-500 truncate max-w-[200px]">{m.endereco}</div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700">{m.idade} anos</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-base text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700">{m.idade} anos</td>
                                         <td className="px-6 py-4 whitespace-nowrap border border-gray-200 dark:border-gray-700">
-                                            <span className="px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200 rounded">
+                                            <span className="px-2 py-1 text-sm font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200 rounded">
                                                 {m.atividade}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700">{m.celular}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700">
+                                        <td className="px-6 py-4 whitespace-nowrap text-base text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700">{m.celular}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-base font-bold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700">
                                             R$ {m.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium border border-gray-200 dark:border-gray-700">
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-base font-medium border border-gray-200 dark:border-gray-700">
                                             <div className="flex justify-end items-center space-x-2">
                                                 {deletingId === m.id ? (
                                                     <div className="flex items-center bg-red-50 dark:bg-red-900/20 rounded-lg p-1 animate-pulse">

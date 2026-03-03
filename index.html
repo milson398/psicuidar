@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="dark">
 
 <head>
   <meta charset="UTF-8" />
@@ -14,6 +14,11 @@
   <meta name="theme-color" content="#5B8DEF" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    }
+  </script>
 
   <style>
     /* Efeito Neon Verde Intenso para CONFIRMADO */
@@ -114,6 +119,18 @@
 
     .animate-neon-blue {
       animation: neon-blue-blink 1.2s infinite ease-in-out alternate;
+    }
+
+    /* Override para títulos quando o fundo for branco seletivo */
+    .light-bg-mode h1 {
+      color: #111827 !important;
+      /* text-gray-900 */
+    }
+
+    /* Apenas parágrafos de introdução (fora dos cards) */
+    .light-bg-mode .container>div>p {
+      color: #374151 !important;
+      /* text-gray-700 */
     }
   </style>
 </head>

@@ -340,11 +340,15 @@ const App: React.FC = () => {
       case 'green': return 'bg-green-950';
       case 'red': return 'bg-red-950';
       case 'blue': return 'bg-blue-950';
-      case 'white': default: return 'bg-gray-50 dark:bg-gray-900';
+      case 'white': return 'bg-white';
+      default: return 'bg-gray-50 dark:bg-gray-900';
     }
   }, []);
 
   const getPageTextClass = (color: ThemeColor) => {
+    if (color === 'white') {
+      return 'text-gray-900';
+    }
     if (color === 'blue' || color === 'black') {
       return 'text-white';
     }
@@ -493,7 +497,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className={`flex h-screen ${getPageBackgroundClass(backgroundColor)} ${getPageTextClass(backgroundColor)} transition-colors duration-500`}>
+    <div className={`flex h-screen ${getPageBackgroundClass(backgroundColor)} ${getPageTextClass(backgroundColor)} ${backgroundColor === 'white' ? 'light-bg-mode' : ''} transition-colors duration-500`}>
       <Sidebar
         setActivePage={(page) => {
           setActivePage(page);

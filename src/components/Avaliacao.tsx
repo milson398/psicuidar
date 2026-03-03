@@ -144,6 +144,8 @@ const Avaliacao: React.FC = () => {
                                     <option value="WISC-IV">WISC-IV</option>
                                     <option value="Provas Operatórias">Provas Operatórias</option>
                                     <option value="IAR">IAR</option>
+                                    <option value="Testes">Testes</option>
+                                    <option value="Avaliações específicas">Avaliações específicas</option>
                                 </select>
                             </div>
                             <div className="mb-6">
