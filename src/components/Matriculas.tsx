@@ -92,10 +92,19 @@ const Matriculas: React.FC = () => {
         const valorNum = parseFloat(formData.valor.replace(',', '.')) || 0;
 
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error('Usuário não autenticado');
+            // Log de versão para depuração (v4)
+            console.log('PsiCuidar v4 - Iniciando salvamento de aluno...');
 
-            // Preparar dados para salvar
+            const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+            // Regra: Se não houver sessão real ou erro de auth, redireciona silenciamente
+            if (authError || !user) {
+                console.error('Sessão Supabase ausente ou inválida. Redirecionando...');
+                sessionStorage.removeItem('psicuidar_auth');
+                window.location.reload();
+                return;
+            }
+
             const payload = {
                 nome: formData.nome,
                 idade: formData.idade,
@@ -106,27 +115,29 @@ const Matriculas: React.FC = () => {
                 user_id: user.id
             };
 
-            console.log('Tentando salvar matrícula:', payload);
-
             if (editingMatricula) {
-                const { error } = await supabase
+                const { error: updateError } = await supabase
                     .from('matriculas')
                     .update(payload)
-                    .eq('id', editingMatricula.id);
-                if (error) throw error;
+                    .eq('id', editingMatricula.id)
+                    .select();
+
+                if (updateError) throw updateError;
             } else {
-                const { error } = await supabase
+                const { error: insertError } = await supabase
                     .from('matriculas')
-                    .insert([payload]);
-                if (error) throw error;
+                    .insert([payload])
+                    .select();
+
+                if (insertError) throw insertError;
             }
 
             await fetchMatriculas();
             setIsModalOpen(false);
         } catch (error: any) {
-            console.error('Erro real ao salvar matrícula:', error);
-            const errorMessage = error.message || 'Erro desconhecido';
-            alert(`Erro ao salvar os dados: ${errorMessage}. Verifique sua conexão ou permissões.`);
+            console.error('Erro ao salvar matrícula:', error);
+            // Mensagem genérica conforme Regra 1 (sem "Usuário não autenticado")
+            alert('Não foi possível concluir o salvamento. Por favor, tente recarregar a página e logar novamente se necessário.');
         }
     };
 
