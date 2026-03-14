@@ -10,10 +10,8 @@ import Intervencao from './components/Intervencao';
 import Matriculas from './components/Matriculas';
 import Pagamentos from './components/Pagamentos';
 import Configuracoes from './components/Configuracoes';
-import AcessoBloqueado from './components/AcessoBloqueado';
-import AdminPainel from './components/AdminPainel';
 import { Appointment, AppointmentStatus, UserProfile, ThemeColor } from './types';
-import { supabase } from './lib/supabase';
+import { supabase } from './services/supabase';
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
@@ -25,7 +23,6 @@ const App: React.FC = () => {
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isStudentResponse, setIsStudentResponse] = useState<boolean>(false);
-  const [subscriptionStatus, setSubscriptionStatus] = useState<'active' | 'suspended' | null>('active');
 
   // Estado Global de Tema (Sidebar/Botões) e Fundo (Página)
   const [themeColor, setThemeColor] = useState<ThemeColor>('blue');
@@ -47,15 +44,6 @@ const App: React.FC = () => {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (user) {
-        // Atualizar o email do perfil para as validações de Admin
-        if (user.email) {
-          setUserProfile(prev => ({
-            ...prev,
-            email: user.email as string,
-            name: user.user_metadata?.name || user.user_metadata?.full_name || prev.name
-          }));
-        }
-
         const { data, error } = await supabase
           .from('appointments')
           .select('*')
@@ -165,31 +153,9 @@ const App: React.FC = () => {
         console.warn("Sessão Supabase não encontrada. Resetando login...");
         sessionStorage.removeItem('psicuidar_auth');
         setIsAuthenticated(false);
-        setSubscriptionStatus(null);
       } else if (session) {
         setIsAuthenticated(true);
         sessionStorage.setItem('psicuidar_auth', 'true');
-
-        // Buscar status da assinatura
-        if (session.user) {
-          try {
-            const { data: subData, error: subError } = await supabase
-              .from('subscriptions')
-              .select('status')
-              .eq('user_id', session.user.id)
-              .single();
-
-            if (!subError && subData) {
-              setSubscriptionStatus(subData.status);
-            } else {
-              // Se der erro ou não tiver (usuário antigo), assumimos ativo por segurança
-              setSubscriptionStatus('active');
-            }
-          } catch (err) {
-            console.error("Erro ao checar assinatura:", err);
-            setSubscriptionStatus('active');
-          }
-        }
       }
 
       // 2. Lógica para processar resposta do aluno via Link (WhatsApp)
@@ -263,12 +229,6 @@ const App: React.FC = () => {
         console.error("Erro ao obter usuário:", userError);
       }
 
-      if (!user) {
-        console.warn("Aviso: Usuário não autenticado no Supabase. O registro será criado sem vínculo (modo legado).");
-      } else {
-        console.log("Usuário autenticado:", user?.id);
-      }
-
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
 
@@ -285,8 +245,6 @@ const App: React.FC = () => {
           user_id: user?.id
         })
         .select();
-
-      console.log("Resultado do Insert (bruto):", { data, error });
 
       if (error) {
         console.error("Erro detalhado no insert:", error);
@@ -308,8 +266,6 @@ const App: React.FC = () => {
         };
         setAppointments(prev => [...prev, newApp].sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime()));
       } else {
-        // Se o RLS bloqueou o retorno do SELECT, buscamos tudo de novo para garantir
-        console.warn("Insert parece ter funcionado mas sem retorno de dados (provável RLS). Recarregando...");
         fetchAppointments(true);
       }
     } catch (error: any) {
@@ -384,11 +340,15 @@ const App: React.FC = () => {
       case 'green': return 'bg-green-950';
       case 'red': return 'bg-red-950';
       case 'blue': return 'bg-blue-950';
-      case 'white': default: return 'bg-gray-50 dark:bg-gray-900';
+      case 'white': return 'bg-white';
+      default: return 'bg-gray-50 dark:bg-gray-900';
     }
   }, []);
 
   const getPageTextClass = (color: ThemeColor) => {
+    if (color === 'white') {
+      return 'text-gray-900';
+    }
     if (color === 'blue' || color === 'black') {
       return 'text-white';
     }
@@ -454,8 +414,6 @@ const App: React.FC = () => {
           currentBackground={backgroundColor}
           onUpdateBackground={setBackgroundColor}
         />;
-      case 'Painel Admin':
-        return userProfile.email === 'admin@psicuidar.com' ? <AdminPainel /> : <Dashboard appointments={appointments} onUpdateStatus={updateAppointmentStatus} />;
       default:
         return <Dashboard
           appointments={appointments}
@@ -538,13 +496,8 @@ const App: React.FC = () => {
     return <Login onLoginSuccess={handleLoginSuccess} />;
   }
 
-  // Barreira de Assinatura (Bloqueia o Dashboard e Menus)
-  if (subscriptionStatus === 'suspended') {
-    return <AcessoBloqueado onLogout={handleLogout} />;
-  }
-
   return (
-    <div className={`flex h-screen ${getPageBackgroundClass(backgroundColor)} ${getPageTextClass(backgroundColor)} transition-colors duration-500`}>
+    <div className={`flex w-full h-[100dvh] overflow-hidden ${getPageBackgroundClass(backgroundColor)} ${getPageTextClass(backgroundColor)} ${backgroundColor === 'white' ? 'light-bg-mode' : ''} transition-colors duration-500`}>
       <Sidebar
         setActivePage={(page) => {
           setActivePage(page);
@@ -554,7 +507,6 @@ const App: React.FC = () => {
         themeColor={themeColor}
         isOpen={isMobileSidebarOpen}
         onClose={() => setIsMobileSidebarOpen(false)}
-        userEmail={userProfile.email}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header
@@ -564,7 +516,7 @@ const App: React.FC = () => {
           onNavigate={(page) => setActivePage(page)}
           currentPage={activePage}
         />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto w-full">
           {renderContent()}
         </main>
       </div>

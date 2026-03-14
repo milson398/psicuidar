@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover" />
   <title>PsiCuidar</title>
 
   <!-- PWA -->
@@ -13,6 +13,7 @@
   <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png" />
   <meta name="theme-color" content="#5B8DEF" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -22,8 +23,8 @@
 
 </head>
 
-<body class="bg-gray-100 dark:bg-gray-900 h-screen overflow-hidden">
-  <div id="root"></div>
+<body class="bg-gray-100 dark:bg-gray-900 w-full h-[100dvh] overflow-hidden overscroll-none">
+  <div id="root" class="w-full h-full"></div>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 
