@@ -31,13 +31,15 @@ const ControleFuncionarios: React.FC = () => {
         setIsLoading(true);
         try {
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error("Usuário não autenticado.");
-
-            const { data, error: fetchError } = await supabase
-                .from('funcionarios')
-                .select('id, nome, email, status, data_criacao')
-                .eq('gestor_id', user.id)
-                .order('data_criacao', { ascending: false });
+            
+            let query = supabase.from('funcionarios').select('id, nome, email, status, data_criacao');
+            
+            // Se tiver usuário logado do Supabase, filtra pelo gestor. Se for fallback admin, pega todos ou sem filtro restrito
+            if (user) {
+                query = query.eq('gestor_id', user.id);
+            }
+            
+            const { data, error: fetchError } = await query.order('data_criacao', { ascending: false });
 
             if (fetchError) throw fetchError;
             setFuncionarios(data || []);
@@ -57,18 +59,14 @@ const ControleFuncionarios: React.FC = () => {
 
         try {
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error("Usuário não autenticado.");
 
-            // Chamando uma RPC genérica se existir ou fazendo insert com a senha hashada via RPC criada.
-            // Dado que em outra sessão o 'gestor' cria o funcionário, usamos inserção direta.
-            // NOTA: Em produção, hash de senha seria feito no backend. Assumindo que o Postgres cuida disso.
             const { error: insertError } = await supabase
                 .from('funcionarios')
                 .insert({
                     nome: formData.nome,
                     email: formData.email,
-                    senha: formData.senha, // Idealmente o backend faz o hash na trigger
-                    gestor_id: user.id,
+                    senha: formData.senha, 
+                    gestor_id: user?.id || null, // Se for fallback de admin, gestor_id fica null
                     status: 'ativo'
                 });
 
@@ -220,7 +218,7 @@ const ControleFuncionarios: React.FC = () => {
             {/* Modal de Criação */}
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={() => setShowModal(false)}></div>
+                    <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"></div>
                     <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6 overflow-hidden animate-fade-in-up border border-gray-100 dark:border-gray-700">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
                         <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Novo Funcionário</h3>

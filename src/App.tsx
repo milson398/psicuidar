@@ -38,38 +38,46 @@ const App: React.FC = () => {
     role: 'Psicopedagoga'
   });
 
-  // Fetch appointments from Supabase
   const fetchAppointments = useCallback(async (silent = false) => {
     if (!silent) setIsLoading(true);
     setErrorStatus(null);
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      
+      let targetUserId = user?.id;
+      const funcAuthStr = sessionStorage.getItem('psicuidar_funcionario_auth');
+      if (!user && funcAuthStr) {
+        try {
+          const funcData = JSON.parse(funcAuthStr).data;
+          targetUserId = funcData.gestor_id; // Pega os agendamentos do gestor
+        } catch(e) {}
+      }
 
-      if (user) {
-        const { data, error } = await supabase
-          .from('appointments')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('date_time', { ascending: true });
+      // Se for fallback do gestor ou não houver id, não filtra por id estrito
+      let query = supabase.from('appointments').select('*').order('date_time', { ascending: true });
+      if (targetUserId) {
+         query = query.eq('user_id', targetUserId);
+      }
 
-        if (error) {
-          console.error("Erro no select:", error);
-          throw error;
-        }
+      const { data, error } = await query;
 
-        if (data) {
-          setAppointments(data.map(app => ({
-            id: app.id,
-            studentName: app.student_name || app.patient_name || app.name || app.nome || 'Sem Nome',
-            whatsapp: app.whatsapp,
-            dateTime: new Date(app.date_time),
-            sessionType: app.session_type as any,
-            status: app.status as AppointmentStatus,
-            confirmationToken: app.confirmation_token,
-            tokenExpiresAt: app.token_expires_at ? new Date(app.token_expires_at) : undefined,
-            isViewed: app.is_viewed
-          })));
-        }
+      if (error) {
+        console.error("Erro no select:", error);
+        throw error;
+      }
+
+      if (data) {
+        setAppointments(data.map(app => ({
+          id: app.id,
+          studentName: app.student_name || app.patient_name || app.name || app.nome || 'Sem Nome',
+          whatsapp: app.whatsapp,
+          dateTime: new Date(app.date_time),
+          sessionType: app.session_type as any,
+          status: app.status as AppointmentStatus,
+          confirmationToken: app.confirmation_token,
+          tokenExpiresAt: app.token_expires_at ? new Date(app.token_expires_at) : undefined,
+          isViewed: app.is_viewed
+        })));
       }
     } catch (error: any) {
       console.error('Error fetching appointments:', error);
@@ -232,6 +240,15 @@ const App: React.FC = () => {
     try {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
 
+      let targetUserId = user?.id;
+      const funcAuthStr = sessionStorage.getItem('psicuidar_funcionario_auth');
+      if (!user && funcAuthStr) {
+        try {
+          const funcData = JSON.parse(funcAuthStr).data;
+          targetUserId = funcData.gestor_id; 
+        } catch(e) {}
+      }
+
       if (userError) {
         console.error("Erro ao obter usuário:", userError);
       }
@@ -249,7 +266,7 @@ const App: React.FC = () => {
           status: AppointmentStatus.PENDENTE,
           is_viewed: true,
           token_expires_at: expiresAt.toISOString(),
-          user_id: user?.id
+          user_id: targetUserId || null
         })
         .select();
 
@@ -362,6 +379,8 @@ const App: React.FC = () => {
     return 'text-gray-800 dark:text-gray-200';
   };
 
+  const isFuncionario = !!sessionStorage.getItem('psicuidar_funcionario_auth');
+
   const renderContent = () => {
     if (errorStatus) {
       return (
@@ -387,6 +406,17 @@ const App: React.FC = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
       );
+    }
+
+    // Bloqueia acesso de funcionário
+    if (isFuncionario && ['Equipe', 'Controle de Pagamentos', 'Configurações', 'Painel Admin'].includes(activePage)) {
+        return (
+            <div className="flex flex-col items-center justify-center h-full p-4 text-center text-gray-500">
+                <svg className="w-16 h-16 mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                <h3 className="text-xl font-bold">Acesso Restrito</h3>
+                <p>Você não tem permissão para visualizar esta área.</p>
+            </div>
+        );
     }
 
     switch (activePage) {
@@ -525,6 +555,7 @@ const App: React.FC = () => {
         themeColor={themeColor}
         isOpen={isMobileSidebarOpen}
         onClose={() => setIsMobileSidebarOpen(false)}
+        isFuncionario={!!sessionStorage.getItem('psicuidar_funcionario_auth')}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header

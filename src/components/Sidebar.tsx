@@ -8,6 +8,7 @@ interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
   userEmail?: string;
+  isFuncionario?: boolean;
 }
 
 const NavItem: React.FC<{ icon: React.ReactNode; label: string; isActive: boolean; onClick: () => void; activeClass: string; textClass: string }> = ({ icon, label, isActive, onClick, activeClass, textClass }) => (
@@ -28,7 +29,7 @@ const NavItem: React.FC<{ icon: React.ReactNode; label: string; isActive: boolea
   </li>
 );
 
-const Sidebar: React.FC<SidebarProps> = ({ setActivePage, activePage, themeColor, isOpen, onClose, userEmail }) => {
+const Sidebar: React.FC<SidebarProps> = ({ setActivePage, activePage, themeColor, isOpen, onClose, userEmail, isFuncionario }) => {
 
   const containerClass = 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-r border-gray-200 dark:border-gray-700';
 
@@ -66,10 +67,13 @@ const Sidebar: React.FC<SidebarProps> = ({ setActivePage, activePage, themeColor
     { label: 'Avaliação', icon: <ClipboardCheckIcon /> },
     { label: 'Intervenção', icon: <PuzzleIcon /> },
     { label: 'Matrículas', icon: <UserGroupIcon /> },
-    { label: 'Equipe', icon: <TeamIcon /> },
-    { label: 'Controle de Pagamentos', icon: <CurrencyDollarIcon /> },
-    { label: 'Configurações', icon: <CogIcon /> },
   ];
+
+  if (!isFuncionario) {
+    navItems.push({ label: 'Equipe', icon: <TeamIcon /> });
+    navItems.push({ label: 'Controle de Pagamentos', icon: <CurrencyDollarIcon /> });
+    navItems.push({ label: 'Configurações', icon: <CogIcon /> });
+  }
 
   if (userEmail === 'admin@psicuidar.com') {
     navItems.push({ label: 'Painel Admin', icon: <AdminShieldIcon /> });
