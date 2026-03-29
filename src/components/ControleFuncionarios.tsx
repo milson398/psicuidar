@@ -103,6 +103,23 @@ const ControleFuncionarios: React.FC = () => {
         }
     };
 
+    const deleteFuncionario = async (id: string) => {
+        if (!window.confirm("Deseja excluir?")) return;
+        
+        try {
+            const { error: deleteError } = await supabase
+                .from('funcionarios')
+                .delete()
+                .eq('id', id);
+
+            if (deleteError) throw deleteError;
+            setFuncionarios(prev => prev.filter(f => f.id !== id));
+        } catch (err: any) {
+            console.error('Erro ao excluir funcionário:', err);
+            alert('Falha ao excluir o funcionário. ' + err.message);
+        }
+    };
+
     return (
         <div className="p-4 md:p-8 animate-fade-in-up">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -197,15 +214,25 @@ const ControleFuncionarios: React.FC = () => {
                                             )}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <button
-                                                onClick={() => toggleStatus(func.id, func.status)}
-                                                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-sm ${func.status === 'ativo'
-                                                        ? 'bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 dark:bg-rose-900/20 dark:hover:bg-rose-900/40 dark:border-rose-800'
-                                                        : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200 dark:bg-emerald-900/20 dark:hover:bg-emerald-900/40 dark:border-emerald-800'
-                                                    }`}
-                                            >
-                                                {func.status === 'ativo' ? 'Bloquear Acesso' : 'Desbloquear Acesso'}
-                                            </button>
+                                            <div className="flex items-center justify-end gap-3">
+                                                <button
+                                                    onClick={() => toggleStatus(func.id, func.status)}
+                                                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-sm ${func.status === 'ativo'
+                                                            ? 'bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 dark:bg-rose-900/20 dark:hover:bg-rose-900/40 dark:border-rose-800'
+                                                            : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200 dark:bg-emerald-900/20 dark:hover:bg-emerald-900/40 dark:border-emerald-800'
+                                                        }`}
+                                                >
+                                                    {func.status === 'ativo' ? 'Bloquear Acesso' : 'Desbloquear Acesso'}
+                                                </button>
+                                                <button
+                                                    onClick={() => deleteFuncionario(func.id)}
+                                                    className="px-4 py-2 flex items-center gap-2 rounded-lg text-sm font-bold transition-all shadow-sm bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-700 border border-gray-200 hover:border-red-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-red-900/30 dark:hover:border-red-800 dark:hover:text-red-400"
+                                                    title="Excluir"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                    Excluir
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
