@@ -147,6 +147,20 @@ const ControleFuncionarios: React.FC = () => {
         }
     };
 
+    const baixarAtalho = () => {
+        const urlAcesso = `${window.location.origin}/funcionario`;
+        const conteudo = `[InternetShortcut]\nURL=${urlAcesso}`;
+        const blob = new Blob([conteudo], { type: 'text/plain' });
+        const urlObj = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = urlObj;
+        a.download = 'Acesso_Equipe_PsiCuidar.url';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(urlObj);
+    };
+
     return (
         <div className="p-4 md:p-8 animate-fade-in-up">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -154,13 +168,23 @@ const ControleFuncionarios: React.FC = () => {
                     <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-400 dark:from-emerald-400 dark:to-teal-200">
                         Minha Equipe
                     </h1>
-                    <p className="mt-2 text-gray-600 dark:text-gray-400 max-w-2xl text-sm md:text-base">
+                    <div className="mt-2 text-gray-600 dark:text-gray-400 max-w-2xl text-sm md:text-base">
                         Gerencie os acessos dos seus funcionários. A tela de login deles está localizada isoladamente no link:
                         <br />
-                        <span className="inline-block mt-2 font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
-                            {window.location.origin}/funcionario
-                        </span>
-                    </p>
+                        <div className="flex flex-wrap items-center gap-3 mt-3">
+                            <span className="font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                                {window.location.origin}/funcionario
+                            </span>
+                            <button
+                                onClick={baixarAtalho}
+                                title="Baixar ícone para enviar aos funcionários"
+                                className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-emerald-100 hover:text-emerald-700 dark:hover:bg-emerald-900/50 text-gray-700 dark:text-gray-300 rounded-lg transition-colors border border-gray-200 dark:border-gray-600 text-sm font-medium shadow-sm"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                Baixar Ícone (Atalho)
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <button
                     onClick={() => {
