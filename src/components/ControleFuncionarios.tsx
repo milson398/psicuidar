@@ -153,24 +153,44 @@ const ControleFuncionarios: React.FC = () => {
         }
     };
 
-    const baixarAtalho = () => {
+    const baixarAtalho = async () => {
         try {
             const urlAcesso = `${window.location.origin}/funcionario`;
             const conteudo = `[InternetShortcut]\nURL=${urlAcesso}`;
-            const blob = new Blob([conteudo], { type: 'text/plain' });
-            const urlObj = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = urlObj;
-            a.download = 'Acesso_Equipe_PsiCuidar.url';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(urlObj);
             
-            setSuccessMsg('✅ Ícone baixado! Verifique sua pasta de Downloads.');
+            // Tenta usar a API moderna para forçar o "Salvar como..."
+            if ('showSaveFilePicker' in window) {
+                const handle = await (window as any).showSaveFilePicker({
+                    suggestedName: 'Acesso_Equipe_PsiCuidar.url',
+                    types: [{
+                        description: 'Atalho da Web',
+                        accept: { 'application/x-url': ['.url'] },
+                    }],
+                });
+                const writable = await handle.createWritable();
+                await writable.write(conteudo);
+                await writable.close();
+                setSuccessMsg('✅ Ícone salvo com sucesso!');
+            } else {
+                // Fallback para o download tradicional
+                const blob = new Blob([conteudo], { type: 'text/plain' });
+                const urlObj = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = urlObj;
+                a.download = 'Acesso_Equipe_PsiCuidar.url';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(urlObj);
+                setSuccessMsg('✅ Ícone baixado! Verifique sua pasta de Downloads.');
+            }
+            
             setTimeout(() => setSuccessMsg(''), 5000);
-        } catch (e) {
-            alert('O download falhou. Tente abrir o sistema no navegador Chrome normal.');
+        } catch (e: any) {
+            // Não mostra erro se o usuário apenas fechou ou cancelou a janela de salvar
+            if (e.name !== 'AbortError') {
+                alert('Ocorreu um erro ao salvar o ícone. Tente usar pelo Google Chrome.');
+            }
         }
     };
 
