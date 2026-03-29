@@ -15,6 +15,7 @@ const ControleFuncionarios: React.FC = () => {
     const [isSaving, setIsSaving] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [confirmAction, setConfirmAction] = useState<{id: string, action: 'delete' | 'toggle', status?: string} | null>(null);
     const [error, setError] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
 
@@ -115,8 +116,7 @@ const ControleFuncionarios: React.FC = () => {
 
     const toggleStatus = async (id: string, currentStatus: string) => {
         const newStatus = currentStatus === 'ativo' ? 'inativo' : 'ativo';
-        if (!window.confirm(`Deseja alterar o status para ${newStatus}?`)) return;
-
+        
         try {
             const { error: updateError } = await supabase
                 .from('funcionarios')
@@ -125,14 +125,16 @@ const ControleFuncionarios: React.FC = () => {
 
             if (updateError) throw updateError;
             setFuncionarios(prev => prev.map(f => f.id === id ? { ...f, status: newStatus } : f));
+            setConfirmAction(null);
+            setSuccessMsg('Status alterado com sucesso!');
+            setTimeout(() => setSuccessMsg(''), 3000);
         } catch (err: any) {
             alert('Falha ao alterar status. ' + err.message);
+            setConfirmAction(null);
         }
     };
 
     const deleteFuncionario = async (id: string) => {
-        if (!window.confirm("Deseja excluir?")) return;
-        
         try {
             const { error: deleteError } = await supabase
                 .from('funcionarios')
@@ -141,24 +143,35 @@ const ControleFuncionarios: React.FC = () => {
 
             if (deleteError) throw deleteError;
             setFuncionarios(prev => prev.filter(f => f.id !== id));
+            setConfirmAction(null);
+            setSuccessMsg('Funcionário excluído!');
+            setTimeout(() => setSuccessMsg(''), 3000);
         } catch (err: any) {
             console.error('Erro ao excluir funcionário:', err);
             alert('Falha ao excluir o funcionário. ' + err.message);
+            setConfirmAction(null);
         }
     };
 
     const baixarAtalho = () => {
-        const urlAcesso = `${window.location.origin}/funcionario`;
-        const conteudo = `[InternetShortcut]\nURL=${urlAcesso}`;
-        const blob = new Blob([conteudo], { type: 'text/plain' });
-        const urlObj = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = urlObj;
-        a.download = 'Acesso_Equipe_PsiCuidar.url';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(urlObj);
+        try {
+            const urlAcesso = `${window.location.origin}/funcionario`;
+            const conteudo = `[InternetShortcut]\nURL=${urlAcesso}`;
+            const blob = new Blob([conteudo], { type: 'text/plain' });
+            const urlObj = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = urlObj;
+            a.download = 'Acesso_Equipe_PsiCuidar.url';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(urlObj);
+            
+            setSuccessMsg('✅ Ícone baixado! Verifique sua pasta de Downloads.');
+            setTimeout(() => setSuccessMsg(''), 5000);
+        } catch (e) {
+            alert('O download falhou. Tente abrir o sistema no navegador Chrome normal.');
+        }
     };
 
     return (
@@ -270,33 +283,53 @@ const ControleFuncionarios: React.FC = () => {
                                             )}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <div className="flex items-center justify-end gap-3">
-                                                <button
-                                                    onClick={() => toggleStatus(func.id, func.status)}
-                                                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-sm ${func.status === 'ativo'
-                                                            ? 'bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 dark:bg-rose-900/20 dark:hover:bg-rose-900/40 dark:border-rose-800'
-                                                            : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200 dark:bg-emerald-900/20 dark:hover:bg-emerald-900/40 dark:border-emerald-800'
-                                                        }`}
-                                                >
-                                                    {func.status === 'ativo' ? 'Bloquear Acesso' : 'Desbloquear Acesso'}
-                                                </button>
-                                                <button
-                                                    onClick={() => handleEdit(func)}
-                                                    className="px-4 py-2 flex items-center gap-2 rounded-lg text-sm font-bold transition-all shadow-sm bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-700 border border-gray-200 hover:border-blue-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-blue-900/30 dark:hover:border-blue-800 dark:hover:text-blue-400"
-                                                    title="Editar"
-                                                >
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                                    Editar
-                                                </button>
-                                                <button
-                                                    onClick={() => deleteFuncionario(func.id)}
-                                                    className="px-4 py-2 flex items-center gap-2 rounded-lg text-sm font-bold transition-all shadow-sm bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-700 border border-gray-200 hover:border-red-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-red-900/30 dark:hover:border-red-800 dark:hover:text-red-400"
-                                                    title="Excluir"
-                                                >
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                                    Excluir
-                                                </button>
-                                            </div>
+                                            {confirmAction?.id === func.id ? (
+                                                <div className="flex items-center justify-end gap-2 animate-fade-in-up">
+                                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300 mr-2">
+                                                        {confirmAction.action === 'delete' ? 'Deseja excluir permanentemente?' : `Mudar acesso para ${confirmAction.status === 'ativo' ? 'Inativo' : 'Ativo'}?`}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => confirmAction.action === 'delete' ? deleteFuncionario(func.id) : toggleStatus(func.id, func.status)}
+                                                        className="px-3 py-1.5 rounded-lg text-sm font-bold bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm"
+                                                    >
+                                                        Sim
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setConfirmAction(null)}
+                                                        className="px-3 py-1.5 rounded-lg text-sm font-bold bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 shadow-sm"
+                                                    >
+                                                        Não
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center justify-end gap-3">
+                                                    <button
+                                                        onClick={() => setConfirmAction({ id: func.id, action: 'toggle', status: func.status })}
+                                                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-sm ${func.status === 'ativo'
+                                                                ? 'bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 dark:bg-rose-900/20 dark:hover:bg-rose-900/40 dark:border-rose-800'
+                                                                : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200 dark:bg-emerald-900/20 dark:hover:bg-emerald-900/40 dark:border-emerald-800'
+                                                            }`}
+                                                    >
+                                                        {func.status === 'ativo' ? 'Bloquear Acesso' : 'Desbloquear Acesso'}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleEdit(func)}
+                                                        className="px-4 py-2 flex items-center gap-2 rounded-lg text-sm font-bold transition-all shadow-sm bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-700 border border-gray-200 hover:border-blue-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-blue-900/30 dark:hover:border-blue-800 dark:hover:text-blue-400"
+                                                        title="Editar"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                                        Editar
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setConfirmAction({ id: func.id, action: 'delete' })}
+                                                        className="px-4 py-2 flex items-center gap-2 rounded-lg text-sm font-bold transition-all shadow-sm bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-700 border border-gray-200 hover:border-red-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-red-900/30 dark:hover:border-red-800 dark:hover:text-red-400"
+                                                        title="Excluir"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                        Excluir
+                                                    </button>
+                                                </div>
+                                            )}
                                         </td>
                                     </tr>
                                 ))
