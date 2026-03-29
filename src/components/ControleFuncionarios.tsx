@@ -14,6 +14,7 @@ const ControleFuncionarios: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
     const [error, setError] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
 
@@ -60,30 +61,56 @@ const ControleFuncionarios: React.FC = () => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
 
-            const { error: insertError } = await supabase
-                .from('funcionarios')
-                .insert({
+            if (editingId) {
+                const updateData: any = {
                     nome: formData.nome,
-                    email: formData.email,
-                    senha: formData.senha, 
-                    gestor_id: user?.id || null, // Se for fallback de admin, gestor_id fica null
-                    status: 'ativo'
-                });
+                    email: formData.email
+                };
+                if (formData.senha) {
+                    updateData.senha = formData.senha;
+                }
 
-            if (insertError) throw insertError;
+                const { error: updateError } = await supabase
+                    .from('funcionarios')
+                    .update(updateData)
+                    .eq('id', editingId);
 
-            setSuccessMsg('Funcionário adicionado com sucesso!');
+                if (updateError) throw updateError;
+                setSuccessMsg('Funcionário atualizado com sucesso!');
+            } else {
+                const { error: insertError } = await supabase
+                    .from('funcionarios')
+                    .insert({
+                        nome: formData.nome,
+                        email: formData.email,
+                        senha: formData.senha, 
+                        gestor_id: user?.id || null, 
+                        status: 'ativo'
+                    });
+
+                if (insertError) throw insertError;
+                setSuccessMsg('Funcionário adicionado com sucesso!');
+            }
+
             setShowModal(false);
             setFormData({ nome: '', email: '', senha: '' });
+            setEditingId(null);
             fetchFuncionarios();
 
             // Limpa mensagem de sucesso depois de 3 segundos
             setTimeout(() => setSuccessMsg(''), 3000);
         } catch (err: any) {
-            setError(err.message || 'Erro ao criar funcionário. O email já pode estar em uso.');
+            setError(err.message || 'Erro ao salvar funcionário. O email já pode estar em uso.');
         } finally {
             setIsSaving(false);
         }
+    };
+
+    const handleEdit = (func: Funcionario) => {
+        setEditingId(func.id);
+        setFormData({ nome: func.nome, email: func.email, senha: '' });
+        setError('');
+        setShowModal(true);
     };
 
     const toggleStatus = async (id: string, currentStatus: string) => {
@@ -136,7 +163,12 @@ const ControleFuncionarios: React.FC = () => {
                     </p>
                 </div>
                 <button
-                    onClick={() => setShowModal(true)}
+                    onClick={() => {
+                        setEditingId(null);
+                        setFormData({ nome: '', email: '', senha: '' });
+                        setError('');
+                        setShowModal(true);
+                    }}
                     className="flex items-center px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl shadow-lg hover:shadow-emerald-500/30 transition-all duration-300 transform hover:-translate-y-0.5"
                 >
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
@@ -225,6 +257,14 @@ const ControleFuncionarios: React.FC = () => {
                                                     {func.status === 'ativo' ? 'Bloquear Acesso' : 'Desbloquear Acesso'}
                                                 </button>
                                                 <button
+                                                    onClick={() => handleEdit(func)}
+                                                    className="px-4 py-2 flex items-center gap-2 rounded-lg text-sm font-bold transition-all shadow-sm bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-700 border border-gray-200 hover:border-blue-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-blue-900/30 dark:hover:border-blue-800 dark:hover:text-blue-400"
+                                                    title="Editar"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                                    Editar
+                                                </button>
+                                                <button
                                                     onClick={() => deleteFuncionario(func.id)}
                                                     className="px-4 py-2 flex items-center gap-2 rounded-lg text-sm font-bold transition-all shadow-sm bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-700 border border-gray-200 hover:border-red-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-red-900/30 dark:hover:border-red-800 dark:hover:text-red-400"
                                                     title="Excluir"
@@ -248,7 +288,9 @@ const ControleFuncionarios: React.FC = () => {
                     <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"></div>
                     <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6 overflow-hidden animate-fade-in-up border border-gray-100 dark:border-gray-700">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Novo Funcionário</h3>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                            {editingId ? 'Editar Funcionário' : 'Novo Funcionário'}
+                        </h3>
                         
                         {error && (<div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100">{error}</div>)}
 
@@ -276,14 +318,16 @@ const ControleFuncionarios: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Senha Inicial</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    {editingId ? 'Nova Senha (Opcional)' : 'Senha Inicial'}
+                                </label>
                                 <input
                                     type="password"
-                                    required
+                                    required={!editingId}
                                     value={formData.senha}
                                     onChange={e => setFormData({ ...formData, senha: e.target.value })}
                                     className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all dark:text-white"
-                                    placeholder="••••••••"
+                                    placeholder={editingId ? 'Deixe em branco para manter a atual' : '••••••••'}
                                 />
                             </div>
 
@@ -300,7 +344,7 @@ const ControleFuncionarios: React.FC = () => {
                                     disabled={isSaving}
                                     className={`px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold rounded-xl shadow-lg hover:shadow-emerald-500/30 transition-all ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
                                 >
-                                    {isSaving ? 'Salvando...' : 'Adicionar'}
+                                    {isSaving ? 'Salvando...' : (editingId ? 'Salvar' : 'Adicionar')}
                                 </button>
                             </div>
                         </form>
