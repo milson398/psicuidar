@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import Login from './components/Login';
+import FuncionarioLogin from './components/FuncionarioLogin';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';
@@ -8,6 +9,7 @@ import Relatorios from './components/Relatorios';
 import Avaliacao from './components/Avaliacao';
 import Intervencao from './components/Intervencao';
 import Matriculas from './components/Matriculas';
+import ControleFuncionarios from './components/ControleFuncionarios';
 import Pagamentos from './components/Pagamentos';
 import Configuracoes from './components/Configuracoes';
 import { Appointment, AppointmentStatus, UserProfile, ThemeColor } from './types';
@@ -15,7 +17,7 @@ import { supabase } from './services/supabase';
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return sessionStorage.getItem('psicuidar_auth') === 'true';
+    return sessionStorage.getItem('psicuidar_auth') === 'true' || !!sessionStorage.getItem('psicuidar_funcionario_auth');
   });
   const [activePage, setActivePage] = useState<string>('Dashboard');
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -148,6 +150,7 @@ const App: React.FC = () => {
       const { data: { session } } = await supabase.auth.getSession();
 
       const isAuthInSession = sessionStorage.getItem('psicuidar_auth') === 'true';
+      const isFuncionarioAuth = !!sessionStorage.getItem('psicuidar_funcionario_auth');
 
       if (!session && isAuthInSession) {
         console.warn("Sessão Supabase não encontrada. Resetando login...");
@@ -156,6 +159,8 @@ const App: React.FC = () => {
       } else if (session) {
         setIsAuthenticated(true);
         sessionStorage.setItem('psicuidar_auth', 'true');
+      } else if (isFuncionarioAuth) {
+        setIsAuthenticated(true);
       }
 
       // 2. Lógica para processar resposta do aluno via Link (WhatsApp)
@@ -217,7 +222,9 @@ const App: React.FC = () => {
   const handleLogout = useCallback(async () => {
     await supabase.auth.signOut();
     sessionStorage.removeItem('psicuidar_auth');
+    sessionStorage.removeItem('psicuidar_funcionario_auth');
     setIsAuthenticated(false);
+    window.location.href = '/';
   }, []);
 
   // Adicionar agendamento
@@ -403,6 +410,8 @@ const App: React.FC = () => {
         return <Intervencao />;
       case 'Matrículas':
         return <Matriculas />;
+      case 'Equipe':
+        return <ControleFuncionarios />;
       case 'Controle de Pagamentos':
         return <Pagamentos />;
       case 'Configurações':
@@ -493,6 +502,15 @@ const App: React.FC = () => {
   }
 
   if (!isAuthenticated) {
+    if (window.location.pathname === '/funcionario') {
+      return (
+        <FuncionarioLogin 
+          onLoginSuccess={(data) => {
+            setIsAuthenticated(true);
+          }} 
+        />
+      );
+    }
     return <Login onLoginSuccess={handleLoginSuccess} />;
   }
 
