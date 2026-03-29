@@ -556,6 +556,7 @@ const App: React.FC = () => {
         isOpen={isMobileSidebarOpen}
         onClose={() => setIsMobileSidebarOpen(false)}
         isFuncionario={!!sessionStorage.getItem('psicuidar_funcionario_auth')}
+        onLogout={handleLogout}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header

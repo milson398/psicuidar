@@ -9,6 +9,7 @@ interface SidebarProps {
   onClose: () => void;
   userEmail?: string;
   isFuncionario?: boolean;
+  onLogout?: () => void;
 }
 
 const NavItem: React.FC<{ icon: React.ReactNode; label: string; isActive: boolean; onClick: () => void; activeClass: string; textClass: string }> = ({ icon, label, isActive, onClick, activeClass, textClass }) => (
@@ -29,7 +30,7 @@ const NavItem: React.FC<{ icon: React.ReactNode; label: string; isActive: boolea
   </li>
 );
 
-const Sidebar: React.FC<SidebarProps> = ({ setActivePage, activePage, themeColor, isOpen, onClose, userEmail, isFuncionario }) => {
+const Sidebar: React.FC<SidebarProps> = ({ setActivePage, activePage, themeColor, isOpen, onClose, userEmail, isFuncionario, onLogout }) => {
 
   const containerClass = 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-r border-gray-200 dark:border-gray-700';
 
@@ -73,6 +74,9 @@ const Sidebar: React.FC<SidebarProps> = ({ setActivePage, activePage, themeColor
     navItems.push({ label: 'Equipe', icon: <TeamIcon /> });
     navItems.push({ label: 'Controle de Pagamentos', icon: <CurrencyDollarIcon /> });
     navItems.push({ label: 'Configurações', icon: <CogIcon /> });
+  } else {
+    // Para funcionários, adiciona o botão Sair no próprio menu lateral para facilitar
+    navItems.push({ label: 'Sair do Sistema', icon: <LogoutIcon /> });
   }
 
   if (userEmail === 'admin@psicuidar.com') {
@@ -108,7 +112,13 @@ const Sidebar: React.FC<SidebarProps> = ({ setActivePage, activePage, themeColor
                 icon={item.icon}
                 label={item.label}
                 isActive={activePage === item.label}
-                onClick={() => setActivePage(item.label)}
+                onClick={() => {
+                  if (item.label === 'Sair do Sistema' && onLogout) {
+                    onLogout();
+                  } else {
+                    setActivePage(item.label);
+                  }
+                }}
                 activeClass={activeClass}
                 textClass={inactiveClass}
               />
@@ -160,6 +170,11 @@ const CurrencyDollarIcon = () => (
 const AdminShieldIcon = () => (
   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+  </svg>
+);
+const LogoutIcon = () => (
+  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
   </svg>
 );
 
