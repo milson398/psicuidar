@@ -156,28 +156,40 @@ const ControleFuncionarios: React.FC = () => {
     const baixarAtalho = async () => {
         try {
             const urlAcesso = `${window.location.origin}/funcionario`;
-            const conteudo = `[InternetShortcut]\nURL=${urlAcesso}`;
+            const conteudoHtml = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="0; url=${urlAcesso}">
+    <title>Acesso Equipe - PsiCuidar</title>
+    <style>body { font-family: sans-serif; text-align: center; padding: 50px; }</style>
+</head>
+<body>
+    <p>Redirecionando para o sistema PsiCuidar...</p>
+    <p><a href="${urlAcesso}">Clique aqui se o redirecionamento não ocorrer automaticamente.</a></p>
+</body>
+</html>`;
             
             // Tenta usar a API moderna para forçar o "Salvar como..."
             if ('showSaveFilePicker' in window) {
                 const handle = await (window as any).showSaveFilePicker({
-                    suggestedName: 'Acesso_Equipe_PsiCuidar.url',
+                    suggestedName: 'Acesso_Equipe_PsiCuidar.html',
                     types: [{
-                        description: 'Atalho da Web',
-                        accept: { 'application/x-url': ['.url'] },
+                        description: 'Arquivo de Atalho (HTML)',
+                        accept: { 'text/html': ['.html'] },
                     }],
                 });
                 const writable = await handle.createWritable();
-                await writable.write(conteudo);
+                await writable.write(conteudoHtml);
                 await writable.close();
-                setSuccessMsg('✅ Ícone salvo com sucesso!');
+                setSuccessMsg('✅ Ícone salvo com sucesso! Dê um duplo clique nele para abrir.');
             } else {
                 // Fallback para o download tradicional
-                const blob = new Blob([conteudo], { type: 'text/plain' });
+                const blob = new Blob([conteudoHtml], { type: 'text/html' });
                 const urlObj = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = urlObj;
-                a.download = 'Acesso_Equipe_PsiCuidar.url';
+                a.download = 'Acesso_Equipe_PsiCuidar.html';
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -185,7 +197,7 @@ const ControleFuncionarios: React.FC = () => {
                 setSuccessMsg('✅ Ícone baixado! Verifique sua pasta de Downloads.');
             }
             
-            setTimeout(() => setSuccessMsg(''), 5000);
+            setTimeout(() => setSuccessMsg(''), 6000);
         } catch (e: any) {
             // Não mostra erro se o usuário apenas fechou ou cancelou a janela de salvar
             if (e.name !== 'AbortError') {
