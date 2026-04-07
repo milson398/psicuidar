@@ -114,4 +114,24 @@
   padding-top: env(safe-area-inset-top, 0px);
 }
 
+.pb-safe-area {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.mt-safe-area {
+  margin-top: env(safe-area-inset-top, 0px);
+}
+
+.mb-safe-area {
+  margin-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.min-h-dvh {
+  min-height: 100dvh;
+}
+
+.h-dvh {
+  height: 100dvh;
+}
+
 

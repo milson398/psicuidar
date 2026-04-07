@@ -16,9 +16,9 @@ import { Appointment, AppointmentStatus, UserProfile, ThemeColor } from './types
 import { supabase } from './services/supabase';
 
 const App: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return sessionStorage.getItem('psicuidar_auth') === 'true' || !!sessionStorage.getItem('psicuidar_funcionario_auth');
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
+  const [isFuncionario, setIsFuncionario] = useState<boolean>(false);
   const [activePage, setActivePage] = useState<string>('Dashboard');
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -45,7 +45,7 @@ const App: React.FC = () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       let targetUserId = user?.id;
-      const funcAuthStr = sessionStorage.getItem('psicuidar_funcionario_auth');
+      const funcAuthStr = localStorage.getItem('psicuidar_funcionario_auth');
       if (!user && funcAuthStr) {
         try {
           const funcData = JSON.parse(funcAuthStr).data;
@@ -122,22 +122,90 @@ const App: React.FC = () => {
   useEffect(() => {
     const checkAuthAndResponse = async () => {
       setIsLoading(true);
+      
       const { data: { session } } = await supabase.auth.getSession();
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlType = urlParams.get('type');
+      
+      const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
+      const isFuncRoute = currentPath === '/funcionario' || urlType === 'funcionario';
+      const isAdminRoute = currentPath === '/admin' || currentPath === '/psicopedagogo' || urlType === 'gestor';
 
+      // Persiste a preferência de portal no localStorage para ícones PWA
+      if (isFuncRoute) {
+          localStorage.setItem('psicuidar_pref_portal', 'funcionario');
+      } else if (isAdminRoute && urlType === 'gestor') {
+          localStorage.setItem('psicuidar_pref_portal', 'gestor');
+      }
+
+      const prefPortal = localStorage.getItem('psicuidar_pref_portal');
+      const isFuncionarioAuth = !!localStorage.getItem('psicuidar_funcionario_auth');
       const isAuthInSession = sessionStorage.getItem('psicuidar_auth') === 'true';
-      const isFuncionarioAuth = !!sessionStorage.getItem('psicuidar_funcionario_auth');
+
+      // --- ISOLAMENTO DE PERFIL LOGIC ---
+      // Se estou tentando entrar como FUNCIONÁRIO, mas logado como GESTOR -> Limpa gestor
+      if (isFuncRoute && session) {
+          await supabase.auth.signOut();
+          sessionStorage.removeItem('psicuidar_auth');
+          localStorage.removeItem('userType');
+          localStorage.removeItem('role');
+          window.location.reload(); 
+          return;
+      }
+      
+      // Se estou forçando GESTOR, mas logado como FUNCIONÁRIO -> Limpa funcionário
+      if (isAdminRoute && urlType === 'gestor' && isFuncionarioAuth) {
+          localStorage.removeItem('psicuidar_funcionario_auth');
+          window.location.reload();
+          return;
+      }
+
+      // Redirecionamento automático para portal de preferência
+      if (currentPath === '/' && prefPortal === 'funcionario' && !session) {
+          setIsAuthenticated(false);
+          setIsFuncionario(true);
+          setIsCheckingAuth(false);
+          return;
+      }
 
       if (!session && isAuthInSession) {
         sessionStorage.removeItem('psicuidar_auth');
         setIsAuthenticated(false);
       } else if (session) {
         setIsAuthenticated(true);
+        setIsFuncionario(false);
         sessionStorage.setItem('psicuidar_auth', 'true');
       } else if (isFuncionarioAuth) {
-        setIsAuthenticated(true);
+        try {
+          const authData = JSON.parse(localStorage.getItem('psicuidar_funcionario_auth') || '{}');
+          if (authData.authenticated) {
+            setIsAuthenticated(true);
+            setIsFuncionario(true);
+          }
+        } catch(e) {
+          setIsAuthenticated(false);
+        }
+      } else {
+        setIsAuthenticated(false);
+        // Se estamos em rota de funcionário ou preferência é funcionário, mostra tela verde
+        setIsFuncionario(isFuncRoute || prefPortal === 'funcionario');
+      }
+      setIsCheckingAuth(false);
+      
+      const forceParam = urlParams.get('force') === 'true';
+      const forceLoginParam = urlParams.get('force_login') === 'true';
+      
+      if (forceParam || forceLoginParam) {
+          sessionStorage.clear();
+          localStorage.removeItem('psicuidar_funcionario_auth');
+          localStorage.removeItem('psicuidar_pref_portal');
+          localStorage.removeItem('userType');
+          localStorage.removeItem('role');
+          if (session) await supabase.auth.signOut();
+          setIsAuthenticated(false);
+          setIsFuncionario(false);
       }
 
-      const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('token');
       const response = urlParams.get('res');
 
@@ -190,23 +258,42 @@ const App: React.FC = () => {
   }, []);
 
   const handleLogout = useCallback(async () => {
+    // 1. Identifica se estamos em portal de funcionário antes de limpar tudo
+    const currentIsFuncionario = isFuncionario || localStorage.getItem('userType') === 'funcionario' || localStorage.getItem('psicuidar_pref_portal') === 'funcionario';
+    
+    // 2. Logout do Supabase (para o caso de gestores)
     await supabase.auth.signOut();
-    sessionStorage.removeItem('psicuidar_auth');
-    sessionStorage.removeItem('psicuidar_funcionario_auth');
+    
+    // 3. Limpeza COMPLETA do Storage
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    // 3b. Restaura a PREFERÊNCIA de portal para que o ícone PWA/link continue abrindo no local certo
+    if (currentIsFuncionario) {
+        localStorage.setItem('psicuidar_pref_portal', 'funcionario');
+    }
+    
     setIsAuthenticated(false);
-    window.location.href = '/';
-  }, []);
+    setIsFuncionario(false);
+    
+    // 4. Redirecionamento condicional
+    if (currentIsFuncionario) {
+        window.location.href = '/funcionario';
+    } else {
+        window.location.href = '/'; 
+    }
+  }, [isFuncionario]);
 
   const addAppointment = useCallback(async (newAppointment: Omit<Appointment, 'id' | 'status'>) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
       let targetUserId = user?.id;
-      const funcAuthStr = sessionStorage.getItem('psicuidar_funcionario_auth');
+      const funcAuthStr = localStorage.getItem('psicuidar_funcionario_auth');
       if (!user && funcAuthStr) {
         try {
-          const funcData = JSON.parse(funcAuthStr).data;
-          targetUserId = funcData.gestor_id; 
+          const funcParsed = JSON.parse(funcAuthStr);
+          targetUserId = funcParsed.data?.gestor_id || funcParsed.data?.id; 
         } catch(e) {}
       }
 
@@ -294,7 +381,6 @@ const App: React.FC = () => {
     return 'text-gray-800 dark:text-gray-200';
   };
 
-  const isFuncionario = !!sessionStorage.getItem('psicuidar_funcionario_auth');
 
   const renderContent = () => {
     if (errorStatus) {
@@ -357,6 +443,7 @@ const App: React.FC = () => {
     }
   };
 
+
   if (isStudentResponse && !isAuthenticated) {
     const urlParams = new URLSearchParams(window.location.search);
     const resValue = urlParams.get('res');
@@ -377,9 +464,10 @@ const App: React.FC = () => {
   }
 
   if (!isAuthenticated) {
-    if (window.location.pathname === '/funcionario') {
+    if (isFuncionario) {
       return <FuncionarioLogin onLoginSuccess={() => {
         setIsAuthenticated(true);
+        setIsFuncionario(true);
         window.scrollTo(0, 0);
       }} />;
     }
@@ -387,7 +475,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className={`flex flex-col lg:flex-row min-h-screen lg:h-screen ${getPageBackgroundClass(backgroundColor)} ${getPageTextClass(backgroundColor)} transition-colors duration-500`}>
+    <div className={`relative flex flex-col lg:flex-row min-h-dvh lg:h-dvh pt-safe-area pb-safe-area ${getPageBackgroundClass(backgroundColor)} ${getPageTextClass(backgroundColor)} transition-colors duration-500`}>
       <Sidebar
         setActivePage={(page) => { setActivePage(page); setIsMobileSidebarOpen(false); }}
         activePage={activePage}

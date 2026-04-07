@@ -50,7 +50,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                     console.log("Usuário criado e logado com sucesso!", signUpData);
                     onLoginSuccess();
                 }
-            } else {
+                localStorage.setItem('userType', 'psicopedagogo');
                 onLoginSuccess();
             }
         } catch (err) {
@@ -61,7 +61,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     };
 
     return (
-        <div className="min-h-screen flex bg-white dark:bg-gray-900">
+        <div className="relative min-h-dvh flex bg-white dark:bg-gray-900 pt-safe-area pb-safe-area">
             {/* Lado Esquerdo - Visual e Branding (Escondido em Mobile) */}
             <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-slate-900">
 
@@ -159,7 +159,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             </div>
 
             {/* Lado Direito - Formulário */}
-            <div className="w-full lg:w-1/2 flex flex-col p-8 sm:p-12 lg:p-24 bg-gray-50 dark:bg-gray-900 min-h-screen overflow-y-auto pt-safe-area pt-6">
+            <div className="w-full lg:w-1/2 flex flex-col p-8 sm:p-12 lg:p-24 bg-gray-50 dark:bg-gray-900 min-h-dvh overflow-y-auto pt-safe-area pb-safe-area pt-6">
                 <div className="w-full max-w-md space-y-8 my-auto mx-auto lg:mx-0">
                     <div className="text-center lg:text-left">
                         <div className="lg:hidden flex justify-center mb-4">

@@ -98,13 +98,13 @@ const Sidebar: React.FC<SidebarProps> = ({ setActivePage, activePage, themeColor
             ${containerClass}
             flex flex-col h-full
         `}>
-        <div className="h-16 px-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center flex-shrink-0">
+        <div className="h-20 pt-safe-area px-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center flex-shrink-0">
           <h1 className={`text-2xl font-bold ${titleColorClass}`}>PsiCuidar</h1>
-          <button onClick={onClose} className="md:hidden text-gray-500 hover:text-gray-700 focus:outline-none">
+          <button onClick={onClose} className="md:hidden mt-safe-area text-gray-500 hover:text-gray-700 focus:outline-none">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
-        <nav className="p-4 overflow-y-auto flex-1 pb-20">
+        <nav className="p-4 overflow-y-auto flex-1 pb-20 pb-safe-area">
           <ul>
             {navItems.map(item => (
               <NavItem
