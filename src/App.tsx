@@ -138,16 +138,16 @@ const App: React.FC = () => {
       
       const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
     // Normalização das rotas do portal de funcionários
-    const isFuncRoute = currentPath.includes('/funcionario') || urlType === 'funcionario' || localStorage.getItem('psicuidar_pref_portal') === 'funcionario';
+    const currentRouteIsFuncionario = currentPath.includes('/funcionario') || urlType === 'funcionario' || localStorage.getItem('psicuidar_pref_portal') === 'funcionario';
     
     // GARANTIA EXTRA: Se estivermos em uma rota de funcionário, o estado isFuncionario é IMUTÁVEL como TRUE
-    if (isFuncRoute && !isFuncionario) {
+    if (currentRouteIsFuncionario && !isFuncionario) {
         setIsFuncionario(true);
     }
       const isAdminRoute = currentPath === '/admin' || currentPath === '/psicopedagogo' || urlType === 'gestor';
 
       // Persiste a preferência de portal no localStorage para ícones PWA
-      if (isFuncRoute) {
+      if (currentRouteIsFuncionario) {
           localStorage.setItem('psicuidar_pref_portal', 'funcionario');
       } else if (isAdminRoute && urlType === 'gestor') {
           localStorage.setItem('psicuidar_pref_portal', 'gestor');
@@ -159,7 +159,7 @@ const App: React.FC = () => {
 
       // --- ISOLAMENTO DE PERFIL LOGIC ---
       // Se estou tentando entrar como FUNCIONÁRIO, mas logado como GESTOR -> Limpa gestor silenciosamente
-      if (isFuncRoute && session) {
+      if (currentRouteIsFuncionario && session) {
           await supabase.auth.signOut();
           sessionStorage.removeItem('psicuidar_auth');
           localStorage.removeItem('userType');
@@ -180,7 +180,7 @@ const App: React.FC = () => {
         setIsAuthenticated(false);
       } else if (session) {
         // Se estamos em rota de funcionário, ignoramos a sessão de admin para evitar o "flash admin"
-        if (isFuncRoute) {
+        if (currentRouteIsFuncionario) {
             setIsAuthenticated(false);
             setIsFuncionario(true);
         } else {
@@ -201,7 +201,7 @@ const App: React.FC = () => {
       } else {
         setIsAuthenticated(false);
         // Garantia absoluta: se for rota de funcionário, stays funcionario
-        if (isFuncRoute) {
+        if (currentRouteIsFuncionario) {
             setIsFuncionario(true);
         } else {
             setIsFuncionario(prefPortal === 'funcionario');
@@ -221,7 +221,7 @@ const App: React.FC = () => {
           setIsAuthenticated(false);
           // IMPORTANTE: Se estiver em rota de funcionário, mantém o estado isFuncionario=true
           // para evitar redirecionamento forçado para o login administrativo
-          if (!isFuncRoute && prefPortal !== 'funcionario') {
+          if (!currentRouteIsFuncionario && prefPortal !== 'funcionario') {
              setIsFuncionario(false);
              localStorage.removeItem('psicuidar_pref_portal');
           }
