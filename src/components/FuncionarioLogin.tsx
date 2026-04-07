@@ -52,9 +52,9 @@ const FuncionarioLogin: React.FC<FuncionarioLoginProps> = ({ onLoginSuccess }) =
     };
 
     return (
-        <div className="relative min-h-dvh flex flex-col lg:flex-row bg-white dark:bg-[#0a0f1e] overflow-x-hidden pt-safe-area pb-safe-area">
-            {/* Lado Esquerdo */}
-            <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-slate-900">
+        <div className="flex flex-col lg:flex-row w-full h-screen overflow-hidden bg-white dark:bg-[#0a0f1e]">
+            {/* Lado Esquerdo - Imagem (só desktop) */}
+            <div className="hidden lg:flex lg:w-1/2 flex-col relative overflow-hidden bg-slate-900">
                 <div className="absolute inset-0 z-0">
                     <img
                         src="https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=1587&q=80"
@@ -83,9 +83,9 @@ const FuncionarioLogin: React.FC<FuncionarioLoginProps> = ({ onLoginSuccess }) =
                 </div>
             </div>
  
-            {/* Lado Direito */}
-            <div className="w-full lg:w-1/2 flex flex-col p-5 sm:p-12 lg:p-24 bg-white dark:bg-[#060b18] min-height-full overflow-y-auto">
-                <div className="w-full max-w-sm sm:max-w-md space-y-8 my-auto mx-auto lg:mx-0">
+            {/* Lado Direito - Formulário */}
+            <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 sm:p-12 lg:p-16 bg-white dark:bg-[#060b18] overflow-y-auto">
+                <div className="w-full max-w-md space-y-8">
                     <div className="text-center lg:text-left">
                         <div className="lg:hidden flex justify-center mb-4">
                             <svg className="w-12 h-12 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
