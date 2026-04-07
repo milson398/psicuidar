@@ -152,15 +152,6 @@ const FuncionarioLogin: React.FC<FuncionarioLoginProps> = ({ onLoginSuccess }) =
                             {isLoading ? 'Acessando...' : 'Acessar Sistema'}
                         </button>
                     </form>
-                    <div className="mt-6 text-center text-sm">
-                        <a 
-                            href="/" 
-                            onClick={() => localStorage.removeItem('psicuidar_pref_portal')}
-                            className="text-emerald-600 font-medium hover:underline"
-                        >
-                            Voltar para Login de Gestor
-                        </a>
-                    </div>
                 </div>
             </div>
         </div>
