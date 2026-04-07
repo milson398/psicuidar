@@ -32,7 +32,10 @@ const FuncionarioLogin: React.FC<FuncionarioLoginProps> = ({ onLoginSuccess }) =
                 setError(rpcError.message || 'Credenciais inválidas ou acesso bloqueado.');
             } else if (data) {
                 console.log("Funcionário logado com sucesso!", data);
+                // Define as etiquetas de portal ANTES de chamar o sucesso
                 localStorage.setItem('userType', 'funcionario');
+                localStorage.setItem('psicuidar_pref_portal', 'funcionario');
+                
                 localStorage.setItem('psicuidar_funcionario_auth', JSON.stringify({
                     authenticated: true,
                     data: data
@@ -150,7 +153,13 @@ const FuncionarioLogin: React.FC<FuncionarioLoginProps> = ({ onLoginSuccess }) =
                         </button>
                     </form>
                     <div className="mt-6 text-center text-sm">
-                        <a href="/" className="text-emerald-600 font-medium hover:underline">Voltar para Login de Gestor</a>
+                        <a 
+                            href="/" 
+                            onClick={() => localStorage.removeItem('psicuidar_pref_portal')}
+                            className="text-emerald-600 font-medium hover:underline"
+                        >
+                            Voltar para Login de Gestor
+                        </a>
                     </div>
                 </div>
             </div>

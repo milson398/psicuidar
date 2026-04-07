@@ -297,10 +297,22 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                         </div>
                     </form>
 
-                    <div className="mt-6 text-center">
+                    <div className="mt-6 text-center space-y-4">
                         <p className="text-sm text-gray-500 dark:text-gray-400">
                             <a href="#" className="font-medium text-blue-600 hover:text-blue-500">Precisa de suporte técnico?</a>
                         </p>
+                        
+                        {/* Link de emergência para funcionários que caírem aqui por erro de redirecionamento */}
+                        <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
+                            <a 
+                                href="/funcionario" 
+                                onClick={() => localStorage.setItem('psicuidar_pref_portal', 'funcionario')}
+                                className="text-xs font-semibold text-gray-400 hover:text-blue-500 transition-colors flex items-center justify-center space-x-1"
+                            >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                                <span>Sou da Equipe / Portal Funcionário</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

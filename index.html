@@ -26,6 +26,16 @@
     <meta name="twitter:image" content="https://psicuidar.vercel.app/logo.png" />
 
     <title>PsiCuidar - Gestão Psicopedagógica</title>
+    <script>
+        // Redirecionamento preventivo para manter o funcionário no portal correto
+        (function() {
+            const prefPortal = localStorage.getItem('psicuidar_pref_portal');
+            const isFuncRoute = window.location.pathname.includes('/funcionario');
+            if (prefPortal === 'funcionario' && !isFuncRoute && window.location.pathname === '/') {
+                window.location.href = '/funcionario';
+            }
+        })();
+    </script>
 </head>
 
 <body class="bg-gray-100 dark:bg-gray-900 w-full min-h-screen overflow-x-hidden">

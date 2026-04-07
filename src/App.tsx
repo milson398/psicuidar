@@ -24,7 +24,13 @@ const App: React.FC = () => {
     const path = window.location.pathname.replace(/\/$/, '') || '/';
     const params = new URLSearchParams(window.location.search);
     const prefPortal = localStorage.getItem('psicuidar_pref_portal');
-    return path.includes('/funcionario') || params.get('type') === 'funcionario' || prefPortal === 'funcionario';
+    const userType = localStorage.getItem('userType');
+    
+    // Se explicitamente for funcionário ou estiver na rota de funcionário, trava como true
+    if (path.includes('/funcionario') || params.get('type') === 'funcionario' || prefPortal === 'funcionario' || userType === 'funcionario') {
+        return true;
+    }
+    return false;
   });
   
   const [activePage, setActivePage] = useState<string>('Dashboard');
@@ -174,11 +180,9 @@ const App: React.FC = () => {
           return;
       }
 
-      // Redirecionamento automático para portal de preferência (apenas se estiver na raiz)
+      // REDIRECIONAMENTO DE SEGURANÇA: Se o portal preferido for funcionário mas estamos no Admin, força a mudança
       if (currentPath === '/' && prefPortal === 'funcionario' && !session) {
-          setIsAuthenticated(false);
-          setIsFuncionario(true);
-          setIsCheckingAuth(false);
+          window.location.href = '/funcionario';
           return;
       }
 
@@ -286,36 +290,31 @@ const App: React.FC = () => {
   }, []);
 
   const handleLogout = useCallback(async () => {
-    // 1. Identifica o portal atual com precisão antes de limpar tudo
-    const isActuallyFuncionario = isFuncionario || 
-                                localStorage.getItem('userType') === 'funcionario' || 
-                                localStorage.getItem('psicuidar_pref_portal') === 'funcionario' ||
-                                window.location.pathname.includes('/funcionario');
-    
-    // 2. Logout do Supabase
+    // 1. Identifica o portal do usuário com segurança máxima
+    const wasFuncionario = isFuncionario || 
+                           localStorage.getItem('userType') === 'funcionario' || 
+                           localStorage.getItem('psicuidar_pref_portal') === 'funcionario';
+
     try {
+        // 2. Encerra a sessão na Supabase e aguarda a confirmação
         await supabase.auth.signOut();
     } catch (e) {
-        console.error("Erro ao sair do Supabase:", e);
+        console.error("Erro no logout remoto:", e);
     }
+
+    // 3. Limpeza instantânea do storage local (menos a preferência de portal)
+    localStorage.removeItem('psicuidar_funcionario_auth');
+    localStorage.removeItem('userType');
+    localStorage.removeItem('role');
+    sessionStorage.removeItem('psicuidar_auth');
     
-    // 3. Limpeza COMPLETA e segura do Storage
-    sessionStorage.clear();
-    localStorage.clear();
-    
-    // 4. Preserva a preferência apenas se for funcionário para garantir o redirecionamento estável
-    if (isActuallyFuncionario) {
+    // 4. Determina o destino e grava a preferência com prioridade
+    if (wasFuncionario) {
         localStorage.setItem('psicuidar_pref_portal', 'funcionario');
-        // Não resetamos isFuncionario aqui para evitar que o render mude para AdminLogin antes do reload
-    }
-    
-    setIsAuthenticated(false);
-    
-    // 5. Redirecionamento físico imediato para limpar qualquer estado residual na memória
-    if (isActuallyFuncionario) {
         window.location.href = '/funcionario';
     } else {
-        window.location.href = '/'; 
+        localStorage.removeItem('psicuidar_pref_portal');
+        window.location.href = '/';
     }
   }, [isFuncionario]);
 
