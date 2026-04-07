@@ -279,36 +279,39 @@ const App: React.FC = () => {
   }, []);
 
   const handleLogout = useCallback(async () => {
-    // 1. Identifica o portal do usuário com segurança máxima
-    const wasFuncionario = isFuncionario || 
-                           localStorage.getItem('userType') === 'funcionario' || 
-                           localStorage.getItem('psicuidar_pref_portal') === 'funcionario';
+    // PROTEÇÃO ABSOLUTA DA REGRA DE NEGÓCIO: Se a URL atual tem /funcionario, 
+    // ele é INEGOCIAVELMENTE tratado como funcionário no momento do logout.
+    const isStrictlyFuncionarioRoute = window.location.pathname.includes('/funcionario');
+    const wasFuncionario = isStrictlyFuncionarioRoute || isFuncionario || localStorage.getItem('userType') === 'funcionario';
 
     try {
-        // 2. Encerra a sessão na Supabase e aguarda a confirmação
+        if (!wasFuncionario) {
+            localStorage.removeItem('supabase.auth.token');
+        }
         await supabase.auth.signOut();
     } catch (e) {
         console.error("Erro no logout remoto:", e);
     }
 
-    // 3. Limpeza instantânea do storage local (menos a preferência de portal)
+    // Limpeza profunda e garantida
     localStorage.removeItem('psicuidar_funcionario_auth');
     localStorage.removeItem('userType');
     localStorage.removeItem('role');
     sessionStorage.removeItem('psicuidar_auth');
     
-    // 4. Determina o destino e muda O ESTADO, e não a URL completa se já estamos no lugar certo
-    if (wasFuncionario) {
+    setIsAuthenticated(false);
+
+    // BLINDAGEM DE DESTINO:
+    if (isStrictlyFuncionarioRoute || wasFuncionario) {
+        // PERMANECE no funcionário. Zero redirects pro gestor. Nunca mais.
         localStorage.setItem('psicuidar_pref_portal', 'funcionario');
-        setIsAuthenticated(false);
         setIsFuncionario(true);
-        // Se a rota na URL não tiver funcionário, atualizamos gentilmente a URL sem recarregar
         if (!window.location.pathname.includes('/funcionario')) {
             window.history.replaceState(null, '', '/funcionario');
         }
     } else {
+        // Vai para o gestor
         localStorage.removeItem('psicuidar_pref_portal');
-        setIsAuthenticated(false);
         setIsFuncionario(false);
         if (window.location.pathname !== '/') {
             window.history.replaceState(null, '', '/');
@@ -507,13 +510,19 @@ const App: React.FC = () => {
   }
 
   if (!isAuthenticated) {
-    if (isFuncionario || isFuncRoute) {
+    // AVALIAÇÃO ESTRITA E IMEDIATA DA ROTA ATUAL
+    const isStrictlyFuncionarioRoute = window.location.pathname.includes('/funcionario');
+    
+    if (isStrictlyFuncionarioRoute || isFuncionario) {
+      // SE CAIU AQUI, É IMPOSSÍVEL RENDERIZAR O LOGIN DO GESTOR.
       return <FuncionarioLogin onLoginSuccess={(fd) => {
         setIsAuthenticated(true);
         setIsFuncionario(true);
         window.scrollTo(0, 0);
       }} />;
     }
+    
+    // SÓ cai no login do gestor se isFuncRoute e isFuncionario forem FALSOS.
     return <Login onLoginSuccess={handleLoginSuccess} />;
   }
 
