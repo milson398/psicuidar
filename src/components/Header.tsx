@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { UserProfile } from '../../types';
+import { UserProfile } from '../types';
 
 interface HeaderProps {
     onLogout: () => void;
@@ -85,7 +85,7 @@ const Header: React.FC<HeaderProps> = ({ onLogout, userProfile, onMenuToggle, on
     };
 
     return (
-        <header className="h-16 px-4 flex items-center justify-between bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 shadow-sm z-20 relative transition-all duration-300">
+        <header className="relative w-full h-auto min-h-[4rem] pt-safe-area md:pt-6 px-4 flex items-center justify-between bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-md z-40 transition-all duration-300">
             <div className="flex items-center">
                 {/* Botão Menu Mobile */}
                 <button

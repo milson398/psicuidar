@@ -159,8 +159,8 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             </div>
 
             {/* Lado Direito - Formulário */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 lg:p-24 bg-gray-50 dark:bg-gray-900">
-                <div className="w-full max-w-md space-y-8">
+            <div className="w-full lg:w-1/2 flex flex-col p-8 sm:p-12 lg:p-24 bg-gray-50 dark:bg-gray-900 min-h-screen overflow-y-auto pt-safe-area pt-6">
+                <div className="w-full max-w-md space-y-8 my-auto mx-auto lg:mx-0">
                     <div className="text-center lg:text-left">
                         <div className="lg:hidden flex justify-center mb-4">
                             <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>

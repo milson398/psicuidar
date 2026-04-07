@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Appointment, AppointmentStatus } from '../../types';
+import { Appointment, AppointmentStatus } from '../types';
 
 interface DashboardProps {
   appointments: Appointment[];
@@ -21,9 +21,11 @@ const AppointmentCard: React.FC<{ appointment: Appointment, onUpdateStatus: (id:
   const getButtonClasses = (status: AppointmentStatus, buttonType: 'confirm' | 'cancel' | 'reschedule', isViewed: boolean) => {
     const baseClasses = "flex-1 py-2.5 px-2 text-xs sm:text-sm rounded-lg font-black text-white transition-all duration-300 focus:outline-none shadow-lg transform active:scale-95 whitespace-nowrap border-2";
 
-    // O NEON SÓ ATIVA SE O PSICOPEDAGOGO AINDA NÃO VIU A RESPOSTA (isViewed === false)
-    if (status === AppointmentStatus.PENDENTE && !isViewed) {
-      return `${baseClasses} bg-blue-600 border-blue-400 animate-neon-blue`;
+    if (status === AppointmentStatus.PENDENTE) {
+      if (!isViewed) {
+         return `${baseClasses} bg-blue-600 border-blue-400 animate-neon-blue`;
+      }
+      return `${baseClasses} bg-blue-600 border-blue-700 hover:bg-blue-700 opacity-90`;
     }
 
     if (buttonType === 'confirm') {
@@ -104,8 +106,8 @@ const Dashboard: React.FC<DashboardProps> = ({ appointments, onUpdateStatus }) =
   });
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-8">
-      <div className="mb-8 text-center lg:text-left">
+    <div className="container mx-auto px-4 sm:px-6 pt-6 sm:pt-8 pb-8">
+      <div className="mb-10 text-center lg:text-left">
         <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Dashboard</h1>
         <p className="mt-2 text-gray-500 dark:text-gray-400">Olá, {appointments.length > 0 ? 'Dra. Ana Silva' : 'bem-vinda'}! Veja seus agendamentos para hoje.</p>
       </div>

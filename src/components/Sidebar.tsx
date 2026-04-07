@@ -1,5 +1,5 @@
 import React from 'react';
-import { ThemeColor } from '../../types';
+import { ThemeColor } from '../types';
 
 interface SidebarProps {
   setActivePage: (page: string) => void;
@@ -92,7 +92,7 @@ const Sidebar: React.FC<SidebarProps> = ({ setActivePage, activePage, themeColor
         ></div>
       )}
       <aside className={`
-            fixed inset-y-0 left-0 z-30 w-64 shadow-xl transform transition-transform duration-300 ease-in-out
+            fixed inset-y-0 left-0 z-50 w-64 shadow-xl transform transition-transform duration-300 ease-in-out
             md:relative md:translate-x-0 
             ${isOpen ? 'translate-x-0' : '-translate-x-full'}
             ${containerClass}

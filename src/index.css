@@ -108,3 +108,10 @@
   border: 2px solid #00BFFF;
   border-radius: 8px;
 }
+
+/* Safe Area Utility para Notch/Barra de Status Mobile */
+.pt-safe-area {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+
