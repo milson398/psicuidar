@@ -18,7 +18,15 @@ import { supabase } from './services/supabase';
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
-  const [isFuncionario, setIsFuncionario] = useState<boolean>(false);
+  
+  // Inicialização estável do estado de funcionário para evitar o "flash" inicial
+  const [isFuncionario, setIsFuncionario] = useState<boolean>(() => {
+    const path = window.location.pathname.replace(/\/$/, '') || '/';
+    const params = new URLSearchParams(window.location.search);
+    const prefPortal = localStorage.getItem('psicuidar_pref_portal');
+    return path.includes('/funcionario') || params.get('type') === 'funcionario' || prefPortal === 'funcionario';
+  });
+  
   const [activePage, setActivePage] = useState<string>('Dashboard');
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -128,7 +136,13 @@ const App: React.FC = () => {
       const urlType = urlParams.get('type');
       
       const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
-      const isFuncRoute = currentPath === '/funcionario' || urlType === 'funcionario';
+    // Normalização das rotas do portal de funcionários
+    const isFuncRoute = currentPath.includes('/funcionario') || urlType === 'funcionario' || localStorage.getItem('psicuidar_pref_portal') === 'funcionario';
+    
+    // GARANTIA EXTRA: Se estivermos em uma rota de funcionário, o estado isFuncionario é IMUTÁVEL como TRUE
+    if (isFuncRoute && !isFuncionario) {
+        setIsFuncionario(true);
+    }
       const isAdminRoute = currentPath === '/admin' || currentPath === '/psicopedagogo' || urlType === 'gestor';
 
       // Persiste a preferência de portal no localStorage para ícones PWA
@@ -160,7 +174,7 @@ const App: React.FC = () => {
           return;
       }
 
-      // Redirecionamento automático para portal de preferência
+      // Redirecionamento automático para portal de preferência (apenas se estiver na raiz)
       if (currentPath === '/' && prefPortal === 'funcionario' && !session) {
           setIsAuthenticated(false);
           setIsFuncionario(true);
@@ -172,9 +186,15 @@ const App: React.FC = () => {
         sessionStorage.removeItem('psicuidar_auth');
         setIsAuthenticated(false);
       } else if (session) {
-        setIsAuthenticated(true);
-        setIsFuncionario(false);
-        sessionStorage.setItem('psicuidar_auth', 'true');
+        // Se estamos em rota de funcionário, ignoramos a sessão de admin para evitar o "flash admin"
+        if (isFuncRoute) {
+            setIsAuthenticated(false);
+            setIsFuncionario(true);
+        } else {
+            setIsAuthenticated(true);
+            setIsFuncionario(false);
+            sessionStorage.setItem('psicuidar_auth', 'true');
+        }
       } else if (isFuncionarioAuth) {
         try {
           const authData = JSON.parse(localStorage.getItem('psicuidar_funcionario_auth') || '{}');
@@ -187,8 +207,12 @@ const App: React.FC = () => {
         }
       } else {
         setIsAuthenticated(false);
-        // Se estamos em rota de funcionário ou preferência é funcionário, mostra tela verde
-        setIsFuncionario(isFuncRoute || prefPortal === 'funcionario');
+        // Garantia absoluta: se for rota de funcionário, stays funcionario
+        if (isFuncRoute) {
+            setIsFuncionario(true);
+        } else {
+            setIsFuncionario(prefPortal === 'funcionario');
+        }
       }
       setIsCheckingAuth(false);
       
@@ -198,12 +222,16 @@ const App: React.FC = () => {
       if (forceParam || forceLoginParam) {
           sessionStorage.clear();
           localStorage.removeItem('psicuidar_funcionario_auth');
-          localStorage.removeItem('psicuidar_pref_portal');
           localStorage.removeItem('userType');
           localStorage.removeItem('role');
           if (session) await supabase.auth.signOut();
           setIsAuthenticated(false);
-          setIsFuncionario(false);
+          // IMPORTANTE: Se estiver em rota de funcionário, mantém o estado isFuncionario=true
+          // para evitar redirecionamento forçado para o login administrativo
+          if (!isFuncRoute && prefPortal !== 'funcionario') {
+             setIsFuncionario(false);
+             localStorage.removeItem('psicuidar_pref_portal');
+          }
       }
 
       const token = urlParams.get('token');
@@ -258,26 +286,33 @@ const App: React.FC = () => {
   }, []);
 
   const handleLogout = useCallback(async () => {
-    // 1. Identifica se estamos em portal de funcionário antes de limpar tudo
-    const currentIsFuncionario = isFuncionario || localStorage.getItem('userType') === 'funcionario' || localStorage.getItem('psicuidar_pref_portal') === 'funcionario';
+    // 1. Identifica o portal atual com precisão antes de limpar tudo
+    const isActuallyFuncionario = isFuncionario || 
+                                localStorage.getItem('userType') === 'funcionario' || 
+                                localStorage.getItem('psicuidar_pref_portal') === 'funcionario' ||
+                                window.location.pathname.includes('/funcionario');
     
-    // 2. Logout do Supabase (para o caso de gestores)
-    await supabase.auth.signOut();
+    // 2. Logout do Supabase
+    try {
+        await supabase.auth.signOut();
+    } catch (e) {
+        console.error("Erro ao sair do Supabase:", e);
+    }
     
-    // 3. Limpeza COMPLETA do Storage
-    localStorage.clear();
+    // 3. Limpeza COMPLETA e segura do Storage
     sessionStorage.clear();
+    localStorage.clear();
     
-    // 3b. Restaura a PREFERÊNCIA de portal para que o ícone PWA/link continue abrindo no local certo
-    if (currentIsFuncionario) {
+    // 4. Preserva a preferência apenas se for funcionário para garantir o redirecionamento estável
+    if (isActuallyFuncionario) {
         localStorage.setItem('psicuidar_pref_portal', 'funcionario');
+        // Não resetamos isFuncionario aqui para evitar que o render mude para AdminLogin antes do reload
     }
     
     setIsAuthenticated(false);
-    setIsFuncionario(false);
     
-    // 4. Redirecionamento condicional
-    if (currentIsFuncionario) {
+    // 5. Redirecionamento físico imediato para limpar qualquer estado residual na memória
+    if (isActuallyFuncionario) {
         window.location.href = '/funcionario';
     } else {
         window.location.href = '/'; 
@@ -458,6 +493,17 @@ const App: React.FC = () => {
         <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-10 shadow-2xl text-center">
             <h2 className={`text-3xl font-black mb-4 bg-clip-text text-transparent bg-gradient-to-r ${statusColorClass}`}>{statusText}</h2>
             <p className="text-slate-300 text-lg">Sua resposta foi enviada com sucesso.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0f1e]">
+        <div className="relative flex flex-col items-center">
+          <div className="h-12 w-12 rounded-full border-4 border-white/10 border-t-gray-400 animate-spin"></div>
+          <div className="mt-4 text-gray-500 text-sm font-medium animate-pulse text-center">Iniciando...</div>
         </div>
       </div>
     );

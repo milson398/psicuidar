@@ -162,23 +162,36 @@ const ControleFuncionarios: React.FC = () => {
                         Minha Equipe
                     </h1>
                     <div className="mt-2 text-gray-600 dark:text-gray-400 max-w-2xl text-sm md:text-base">
-                        Gerencie os acessos. Para que o funcionário tenha um <b>ÍCONE</b> no celular, ele deve abrir o link abaixo no navegador e clicar em <b>"Adicionar à Tela de Início"</b>:
-                        <br />
+                        Gerencie os acessos dos seus funcionários. A tela de login deles está localizada isoladamente no link:
                         <div className="flex flex-wrap items-center gap-3 mt-3">
                             <span className="font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800">
-                                {window.location.origin}/funcionario?force_login=true
+                                {window.location.origin}/funcionario
                             </span>
                             <button
                                 onClick={() => {
                                     const link = `${window.location.origin}/funcionario?force_login=true`;
+                                    
+                                    // Criação de arquivo de atalho .url para Windows/Mac
+                                    const fileContent = `[InternetShortcut]\nURL=${link}`;
+                                    const blob = new Blob([fileContent], { type: 'text/url' });
+                                    const url = URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = 'PsiCuidar-Equipe.url';
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    document.body.removeChild(a);
+                                    URL.revokeObjectURL(url);
+
+                                    // Copia para o clipboard para facilitar no mobile/WhatsApp
                                     navigator.clipboard.writeText(link);
-                                    setSuccessMsg('✅ Link copiado! Envie-o pelo WhatsApp para o funcionário instalá-lo como ícone.');
+                                    setSuccessMsg('✅ Atalho baixado! O link também foi copiado para sua área de transferência.');
                                     setTimeout(() => setSuccessMsg(''), 5000);
                                 }}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300 rounded-lg transition-colors border border-emerald-200 dark:border-emerald-800 text-sm font-bold shadow-sm"
+                                className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors border border-gray-200 dark:border-gray-600 text-sm font-bold shadow-sm"
                             >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-                                Copiar Link de Ícone
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                Baixar Ícone (Atalho)
                             </button>
                         </div>
                     </div>
