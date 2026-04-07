@@ -16,21 +16,16 @@ import { Appointment, AppointmentStatus, UserProfile, ThemeColor } from './types
 import { supabase } from './services/supabase';
 
 const App: React.FC = () => {
+  // --- LEI DO PORTAL: Detecta a rota uma única vez para garantir isolamento total ---
+  const isFuncRoute = window.location.pathname.includes('/funcionario');
+  
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
   
-  // Inicialização estável do estado de funcionário para evitar o "flash" inicial
   const [isFuncionario, setIsFuncionario] = useState<boolean>(() => {
-    const path = window.location.pathname.replace(/\/$/, '') || '/';
-    const params = new URLSearchParams(window.location.search);
+    if (isFuncRoute) return true;
     const prefPortal = localStorage.getItem('psicuidar_pref_portal');
-    const userType = localStorage.getItem('userType');
-    
-    // Se explicitamente for funcionário ou estiver na rota de funcionário, trava como true
-    if (path.includes('/funcionario') || params.get('type') === 'funcionario' || prefPortal === 'funcionario' || userType === 'funcionario') {
-        return true;
-    }
-    return false;
+    return prefPortal === 'funcionario' || localStorage.getItem('userType') === 'funcionario';
   });
   
   const [activePage, setActivePage] = useState<string>('Dashboard');
@@ -163,27 +158,21 @@ const App: React.FC = () => {
       const isAuthInSession = sessionStorage.getItem('psicuidar_auth') === 'true';
 
       // --- ISOLAMENTO DE PERFIL LOGIC ---
-      // Se estou tentando entrar como FUNCIONÁRIO, mas logado como GESTOR -> Limpa gestor
+      // Se estou tentando entrar como FUNCIONÁRIO, mas logado como GESTOR -> Limpa gestor silenciosamente
       if (isFuncRoute && session) {
           await supabase.auth.signOut();
           sessionStorage.removeItem('psicuidar_auth');
           localStorage.removeItem('userType');
           localStorage.removeItem('role');
-          window.location.reload(); 
-          return;
+          setIsAuthenticated(false);
+          setIsFuncionario(true);
       }
       
-      // Se estou forçando GESTOR, mas logado como FUNCIONÁRIO -> Limpa funcionário
+      // Se estou forçando GESTOR, mas logado como FUNCIONÁRIO -> Limpa funcionário silenciosamente
       if (isAdminRoute && urlType === 'gestor' && isFuncionarioAuth) {
           localStorage.removeItem('psicuidar_funcionario_auth');
-          window.location.reload();
-          return;
-      }
-
-      // REDIRECIONAMENTO DE SEGURANÇA: Se o portal preferido for funcionário mas estamos no Admin, força a mudança
-      if (currentPath === '/' && prefPortal === 'funcionario' && !session) {
-          window.location.href = '/funcionario';
-          return;
+          setIsAuthenticated(false);
+          setIsFuncionario(false);
       }
 
       if (!session && isAuthInSession) {
@@ -308,15 +297,24 @@ const App: React.FC = () => {
     localStorage.removeItem('role');
     sessionStorage.removeItem('psicuidar_auth');
     
-    // 4. Determina o destino e grava a preferência com prioridade
+    // 4. Determina o destino e muda O ESTADO, e não a URL completa se já estamos no lugar certo
     if (wasFuncionario) {
         localStorage.setItem('psicuidar_pref_portal', 'funcionario');
-        window.location.href = '/funcionario';
+        setIsAuthenticated(false);
+        setIsFuncionario(true);
+        // Se a rota na URL não tiver funcionário, atualizamos gentilmente a URL sem recarregar
+        if (!window.location.pathname.includes('/funcionario')) {
+            window.history.replaceState(null, '', '/funcionario');
+        }
     } else {
         localStorage.removeItem('psicuidar_pref_portal');
-        window.location.href = '/';
+        setIsAuthenticated(false);
+        setIsFuncionario(false);
+        if (window.location.pathname !== '/') {
+            window.history.replaceState(null, '', '/');
+        }
     }
-  }, [isFuncionario]);
+  }, [isFuncionario, isFuncRoute]);
 
   const addAppointment = useCallback(async (newAppointment: Omit<Appointment, 'id' | 'status'>) => {
     try {
@@ -509,8 +507,8 @@ const App: React.FC = () => {
   }
 
   if (!isAuthenticated) {
-    if (isFuncionario) {
-      return <FuncionarioLogin onLoginSuccess={() => {
+    if (isFuncionario || isFuncRoute) {
+      return <FuncionarioLogin onLoginSuccess={(fd) => {
         setIsAuthenticated(true);
         setIsFuncionario(true);
         window.scrollTo(0, 0);
