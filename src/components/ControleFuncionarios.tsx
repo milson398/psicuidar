@@ -60,34 +60,24 @@ const ControleFuncionarios: React.FC = () => {
         setSuccessMsg('');
 
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-
             if (editingId) {
-                const updateData: any = {
-                    nome: formData.nome,
-                    email: formData.email
-                };
-                if (formData.senha) {
-                    updateData.senha = formData.senha;
-                }
-
-                const { error: updateError } = await supabase
-                    .from('funcionarios')
-                    .update(updateData)
-                    .eq('id', editingId);
+                // Usa RPC segura para atualizar — o hash da senha é feito no servidor
+                const { error: updateError } = await supabase.rpc('update_funcionario_secure', {
+                    p_funcionario_id: editingId,
+                    p_nome: formData.nome,
+                    p_email: formData.email,
+                    p_senha: formData.senha || null
+                });
 
                 if (updateError) throw updateError;
                 setSuccessMsg('Funcionário atualizado com sucesso!');
             } else {
-                const { error: insertError } = await supabase
-                    .from('funcionarios')
-                    .insert({
-                        nome: formData.nome,
-                        email: formData.email,
-                        senha: formData.senha, 
-                        gestor_id: user?.id || null, 
-                        status: 'ativo'
-                    });
+                // Usa RPC segura para criar — a senha é hashada com bcrypt no servidor
+                const { error: insertError } = await supabase.rpc('create_funcionario_secure', {
+                    p_nome: formData.nome,
+                    p_email: formData.email,
+                    p_senha: formData.senha
+                });
 
                 if (insertError) throw insertError;
                 setSuccessMsg('Funcionário adicionado com sucesso!');
@@ -118,13 +108,14 @@ const ControleFuncionarios: React.FC = () => {
         const newStatus = currentStatus === 'ativo' ? 'inativo' : 'ativo';
         
         try {
-            const { error: updateError } = await supabase
-                .from('funcionarios')
-                .update({ status: newStatus })
-                .eq('id', id);
+            // Usa RPC segura: garante que apenas o gestor dono do funcionário possa alterar o status
+            const { error: updateError } = await supabase.rpc('update_funcionario_status', {
+                p_funcionario_id: id,
+                p_status: newStatus
+            });
 
             if (updateError) throw updateError;
-            setFuncionarios(prev => prev.map(f => f.id === id ? { ...f, status: newStatus } : f));
+            setFuncionarios(prev => prev.map(f => f.id === id ? { ...f, status: newStatus as 'ativo' | 'inativo' } : f));
             setConfirmAction(null);
             setSuccessMsg('Status alterado com sucesso!');
             setTimeout(() => setSuccessMsg(''), 3000);

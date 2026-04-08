@@ -61,7 +61,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     };
 
     return (
-        <div className="relative min-h-dvh flex bg-white dark:bg-[#0a0f1e] overflow-x-hidden pt-safe-area pb-safe-area">
+        <div className="relative min-h-screen flex flex-col lg:flex-row bg-white dark:bg-[#0a0f1e] overflow-x-hidden">
             {/* Lado Esquerdo - Visual e Branding (Escondido em Mobile) */}
             <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-slate-900">
 
@@ -159,7 +159,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             </div>
 
             {/* Lado Direito - Formulário */}
-            <div className="w-full lg:w-1/2 flex flex-col p-5 sm:p-12 lg:p-24 bg-white dark:bg-[#060b18] min-height-full overflow-y-auto">
+            <div className="flex-1 lg:w-1/2 flex flex-col p-5 sm:p-12 lg:p-24 bg-white dark:bg-[#060b18] min-h-screen lg:min-h-0 overflow-y-auto">
                 <div className="w-full max-w-sm sm:max-w-md space-y-8 my-auto mx-auto lg:mx-0">
                     <div className="text-center lg:text-left">
                         <div className="lg:hidden flex justify-center mb-4">
