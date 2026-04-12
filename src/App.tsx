@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Login from './components/Login';
+import FuncionarioLogin from './components/FuncionarioLogin';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';
@@ -17,13 +18,13 @@ const App: React.FC = () => {
   const [isFuncionario, setIsFuncionario] = useState(true);
   const [activePage, setActivePage] = useState('Dashboard');
 
-  // 🔥 TELA INICIAL: LOGIN DO PROFISSIONAL (LAYOUT COMPLETO)
+  // 🔥 TELA INICIAL: LOGIN (LAYOUT DIVIDIDO)
   if (!isAuthenticated) {
     return (
-      <Login
+      <FuncionarioLogin
         onLoginSuccess={() => {
           setIsAuthenticated(true);
-          setIsFuncionario(false); // Identifica como profissional/admin
+          setIsFuncionario(true);
         }}
       />
     );
