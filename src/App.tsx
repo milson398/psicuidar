@@ -11,26 +11,58 @@ import ControleFuncionarios from './components/ControleFuncionarios';
 import Pagamentos from './components/Pagamentos';
 import Configuracoes from './components/Configuracoes';
 import ProfessionalLogin from './components/ProfessionalLogin';
+import { Appointment, AppointmentStatus } from './types';
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isFuncionario, setIsFuncionario] = useState(true);
+  const [isFuncionario, setIsFuncionario] = useState(false);
   const [activePage, setActivePage] = useState('Dashboard');
+  const [appointments, setAppointments] = useState<Appointment[]>([
+    {
+      id: '1',
+      studentName: 'João Silva',
+      sessionType: 'Avaliação',
+      dateTime: new Date(2024, 3, 10, 14, 0),
+      status: AppointmentStatus.PENDENTE,
+      isViewed: false
+    },
+    {
+      id: '2',
+      studentName: 'Maria Oliveira',
+      sessionType: 'Intervenção',
+      dateTime: new Date(2024, 3, 10, 15, 0),
+      status: AppointmentStatus.CONFIRMADO,
+      isViewed: true
+    }
+  ]);
 
-  // 🔥 NOVA TELA DE LOGIN PROFISSIONAL (DO ZERO)
+  const handleUpdateStatus = (id: string, status: AppointmentStatus) => {
+    setAppointments(prev => prev.map(app => 
+      app.id === id ? { ...app, status, isViewed: true } : app
+    ));
+  };
+
+  // 🔥 TELA DE LOGIN PROFISSIONAL (INICIAL)
   if (!isAuthenticated) {
     return <ProfessionalLogin onLoginSuccess={() => setIsAuthenticated(true)} />;
   }
 
-  // 🔥 RENDERIZA PÁGINA ATIVA
+  // 🔥 RENDERIZA PÁGINA ATIVA COM OS DADOS NECESSÁRIOS
   const renderPage = () => {
     switch (activePage) {
       case 'Dashboard':
-        return <Dashboard />;
+        return <Dashboard appointments={appointments} onUpdateStatus={handleUpdateStatus} />;
       case 'MinhaAgenda':
-        return <MinhaAgenda />;
+        return (
+          <MinhaAgenda 
+            appointments={appointments} 
+            onAddAppointment={() => {}} 
+            onEditAppointment={() => {}} 
+            onDeleteAppointment={() => {}} 
+          />
+        );
       case 'Relatorios':
-        return <Relatorios />;
+        return <Relatorios appointments={appointments} />;
       case 'Avaliacao':
         return <Avaliacao />;
       case 'Intervencao':
@@ -42,26 +74,43 @@ const App: React.FC = () => {
       case 'Pagamentos':
         return <Pagamentos />;
       case 'Configuracoes':
-        return <Configuracoes />;
+        return (
+          <Configuracoes 
+            userProfile={{ name: 'Dra. Ana Silva', email: 'admin@psicuidar.com', role: 'Administradora' }}
+            onUpdateProfile={() => {}}
+            currentTheme="dark"
+            onUpdateTheme={() => {}}
+            onUpdateNotificationSettings={() => {}}
+            onSyncGoogleCalendar={() => {}}
+          />
+        );
       default:
-        return <Dashboard />;
+        return <Dashboard appointments={appointments} onUpdateStatus={handleUpdateStatus} />;
     }
   };
 
-  // 🔥 SISTEMA PRINCIPAL
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
       <Sidebar
         activePage={activePage}
         setActivePage={setActivePage}
         isFuncionario={isFuncionario}
+        themeColor="#2563eb"
+        isOpen={true}
+        onClose={() => {}}
       />
 
-      <div className="flex-1">
-        <Header />
-        <div className="p-4">
+      <div className="flex-1 flex flex-col min-h-screen">
+        <Header 
+          onLogout={() => setIsAuthenticated(false)}
+          userProfile={{ name: 'Dra. Ana Silva', email: 'admin@psicuidar.com', role: 'Administradora' }}
+          onMenuToggle={() => {}}
+          onNavigate={setActivePage}
+          currentPage={activePage}
+        />
+        <main className="flex-1 overflow-x-hidden overflow-y-auto">
           {renderPage()}
-        </div>
+        </main>
       </div>
     </div>
   );
