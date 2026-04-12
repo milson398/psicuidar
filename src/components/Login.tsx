@@ -61,9 +61,15 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     };
 
     return (
-        <div className="w-full min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-[#060b18]">
+        <div 
+            className="w-full min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-[#060b18] overflow-hidden"
+            style={{ display: 'grid' }}
+        >
             {/* Lado Esquerdo - Visual (Escondido em Mobile) */}
-            <div className="hidden lg:block relative w-full h-full overflow-hidden bg-slate-900 border-r border-white/5">
+            <div 
+                className="hidden lg:block relative w-full h-full overflow-hidden bg-slate-900 border-r border-white/5"
+                style={{ position: 'relative', overflow: 'hidden' }}
+            >
 
                 {/* Imagem de Fundo Profissional */}
                 <div className="absolute inset-0 z-0">
@@ -159,7 +165,10 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             </div>
 
             {/* Lado Direito - Formulário */}
-            <div className="w-full flex flex-col p-8 sm:p-12 lg:p-24 bg-[#060b18] min-h-screen overflow-y-auto">
+            <div 
+                className="w-full flex flex-col p-8 sm:p-12 lg:p-24 bg-[#060b18] min-h-screen overflow-y-auto"
+                style={{ backgroundColor: '#060b18', zIndex: 10, position: 'relative' }}
+            >
                 <div className="w-full max-w-sm sm:max-w-md space-y-8 my-auto mx-auto lg:mx-0">
                     <div className="text-center lg:text-left">
                         <div className="lg:hidden flex justify-center mb-4">
