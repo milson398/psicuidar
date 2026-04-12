@@ -52,7 +52,7 @@ const App: React.FC = () => {
     switch (activePage) {
       case 'Dashboard':
         return <Dashboard appointments={appointments} onUpdateStatus={handleUpdateStatus} />;
-      case 'MinhaAgenda':
+      case 'Minha Agenda':
         return (
           <MinhaAgenda 
             appointments={appointments} 
@@ -61,19 +61,20 @@ const App: React.FC = () => {
             onDeleteAppointment={() => {}} 
           />
         );
-      case 'Relatorios':
+      case 'Relatórios Gerenciais':
         return <Relatorios appointments={appointments} />;
-      case 'Avaliacao':
+      case 'Avaliação':
         return <Avaliacao />;
       case 'Intervencao':
+      case 'Intervenção':
         return <Intervencao />;
-      case 'Matriculas':
+      case 'Matrículas':
         return <Matriculas />;
-      case 'ControleFuncionarios':
+      case 'Equipe':
         return <ControleFuncionarios />;
-      case 'Pagamentos':
+      case 'Controle de Pagamentos':
         return <Pagamentos />;
-      case 'Configuracoes':
+      case 'Configurações':
         return (
           <Configuracoes 
             userProfile={{ name: 'Dra. Ana Silva', email: 'admin@psicuidar.com', role: 'Administradora' }}
