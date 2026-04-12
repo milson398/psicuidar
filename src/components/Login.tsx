@@ -65,13 +65,21 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             className="w-full min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-[#060b18] overflow-hidden"
             style={{ display: 'grid' }}
         >
-            {/* Lado Esquerdo - TESTE DE DIAGNÓSTICO */}
+            {/* Lado Esquerdo - Visual e Branding */}
             <div 
-                className="hidden lg:block relative w-full h-full bg-red-600"
-                style={{ backgroundColor: 'red', width: '100%', height: '100%' }}
+                className="hidden lg:flex lg:w-1/2 relative min-h-screen overflow-hidden bg-slate-900 border-r border-white/5"
+                style={{ display: 'flex', width: '50%', position: 'relative' }}
             >
-                <div className="absolute inset-0 flex items-center justify-center">
-                    <h1 className="text-white text-5xl font-bold opacity-20">TESTE DE CÓDIGO</h1>
+                {/* Imagem de Fundo Profissional */}
+                <div className="absolute inset-0 z-0">
+                    <img
+                        src="https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&auto=format&fit=crop&w=1587&q=80"
+                        alt="Psicopedagoga Profissional"
+                        className="w-full h-full object-cover opacity-40"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                    {/* Gradiente de Sobreposição */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-900/90 via-slate-900/80 to-slate-900/95 mix-blend-multiply"></div>
                 </div>
 
                 {/* Conteúdo Sobreposto */}
