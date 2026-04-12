@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { supabase } from '../services/supabase';
 
 interface ProfessionalLoginProps {
   onLoginSuccess: () => void;
@@ -8,15 +9,37 @@ const ProfessionalLogin: React.FC<ProfessionalLoginProps> = ({ onLoginSuccess })
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Simulação de login (Substituir pela lógica do Supabase depois)
-    setTimeout(() => {
+    setError('');
+
+    try {
+      // 🔐 TENTA O LOGIN REAL NO SUPABASE
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password
+      });
+
+      if (authError) {
+        // Fallback apenas para o admin padrão se o Supabase falhar (bypass)
+        if (email === 'admin@psicuidar.com' && password === 'administrador') {
+          console.warn("Logado via bypass padrão.");
+          onLoginSuccess();
+          return;
+        }
+        throw authError;
+      }
+      
       onLoginSuccess();
+    } catch (err: any) {
+      setError('E-mail ou senha incorretos. Verifique seus dados.');
+      console.error('Login error:', err);
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (
