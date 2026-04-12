@@ -18,16 +18,9 @@ const App: React.FC = () => {
   const [isFuncionario, setIsFuncionario] = useState(true);
   const [activePage, setActivePage] = useState('Dashboard');
 
-  // 🔥 TELA INICIAL: LOGIN (LAYOUT DIVIDIDO)
+  // 🔥 FORÇAR LOGIN NA TELA INICIAL (ESTRUTURA COMPLETA)
   if (!isAuthenticated) {
-    return (
-      <FuncionarioLogin
-        onLoginSuccess={() => {
-          setIsAuthenticated(true);
-          setIsFuncionario(true);
-        }}
-      />
-    );
+    return <FuncionarioLogin onLoginSuccess={() => setIsAuthenticated(true)} />;
   }
 
   // 🔥 RENDERIZA PÁGINA ATIVA
