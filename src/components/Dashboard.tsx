@@ -19,7 +19,7 @@ const AppointmentCard: React.FC<{ appointment: Appointment, onUpdateStatus: (id:
   };
 
   const getButtonClasses = (status: AppointmentStatus, buttonType: 'confirm' | 'cancel' | 'reschedule', isViewed: boolean) => {
-    const baseClasses = "flex-1 py-2.5 px-2 text-xs sm:text-sm rounded-lg font-black text-white transition-all duration-300 focus:outline-none shadow-lg transform active:scale-95 whitespace-nowrap border-2";
+    const baseClasses = "flex-1 py-1.5 px-1 text-[10px] sm:text-xs rounded-md font-bold text-white transition-all duration-300 focus:outline-none shadow-md transform active:scale-95 whitespace-nowrap border";
 
     if (status === AppointmentStatus.PENDENTE) {
       if (!isViewed) {
