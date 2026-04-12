@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import Login from './components/Login';
-import FuncionarioLogin from './components/FuncionarioLogin';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';
@@ -12,15 +10,16 @@ import Matriculas from './components/Matriculas';
 import ControleFuncionarios from './components/ControleFuncionarios';
 import Pagamentos from './components/Pagamentos';
 import Configuracoes from './components/Configuracoes';
+import ProfessionalLogin from './components/ProfessionalLogin';
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isFuncionario, setIsFuncionario] = useState(true);
   const [activePage, setActivePage] = useState('Dashboard');
 
-  // 🔥 FORÇAR TELA INICIAL: ÁREA DO PROFISSIONAL (LOGIN.TSX)
+  // 🔥 NOVA TELA DE LOGIN PROFISSIONAL (DO ZERO)
   if (!isAuthenticated) {
-    return <Login onLoginSuccess={() => setIsAuthenticated(true)} />;
+    return <ProfessionalLogin onLoginSuccess={() => setIsAuthenticated(true)} />;
   }
 
   // 🔥 RENDERIZA PÁGINA ATIVA
