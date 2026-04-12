@@ -18,9 +18,9 @@ const App: React.FC = () => {
   const [isFuncionario, setIsFuncionario] = useState(true);
   const [activePage, setActivePage] = useState('Dashboard');
 
-  // 🔥 FORÇAR LOGIN NA TELA INICIAL (ESTRUTURA COMPLETA)
+  // 🔥 FORÇAR TELA INICIAL: ÁREA DO PROFISSIONAL (LOGIN.TSX)
   if (!isAuthenticated) {
-    return <FuncionarioLogin onLoginSuccess={() => setIsAuthenticated(true)} />;
+    return <Login onLoginSuccess={() => setIsAuthenticated(true)} />;
   }
 
   // 🔥 RENDERIZA PÁGINA ATIVA
