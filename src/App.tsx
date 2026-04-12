@@ -99,9 +99,10 @@ const App: React.FC = () => {
         themeColor="#2563eb"
         isOpen={true}
         onClose={() => {}}
+        onLogout={() => setIsAuthenticated(false)}
       />
 
-      <div className="flex-1 flex flex-col min-h-screen">
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <Header 
           onLogout={() => setIsAuthenticated(false)}
           userProfile={{ name: 'Dra. Ana Silva', email: 'admin@psicuidar.com', role: 'Administradora' }}
@@ -109,8 +110,10 @@ const App: React.FC = () => {
           onNavigate={setActivePage}
           currentPage={activePage}
         />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto">
-          {renderPage()}
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900 scroll-smooth">
+          <div className="min-h-full">
+             {renderPage()}
+          </div>
         </main>
       </div>
     </div>

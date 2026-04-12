@@ -74,10 +74,10 @@ const Sidebar: React.FC<SidebarProps> = ({ setActivePage, activePage, themeColor
     navItems.push({ label: 'Equipe', icon: <TeamIcon /> });
     navItems.push({ label: 'Controle de Pagamentos', icon: <CurrencyDollarIcon /> });
     navItems.push({ label: 'Configurações', icon: <CogIcon /> });
-  } else {
-    // Para funcionários, adiciona o botão Sair no próprio menu lateral para facilitar
-    navItems.push({ label: 'Sair do Sistema', icon: <LogoutIcon /> });
   }
+
+  // Adiciona botão Sair para todos
+  navItems.push({ label: 'Sair do Sistema', icon: <LogoutIcon /> });
 
   if (userEmail === 'admin@psicuidar.com') {
     navItems.push({ label: 'Painel Admin', icon: <AdminShieldIcon /> });
@@ -98,13 +98,13 @@ const Sidebar: React.FC<SidebarProps> = ({ setActivePage, activePage, themeColor
             ${containerClass}
             flex flex-col h-full
         `}>
-        <div className="h-20 pt-safe-area px-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center flex-shrink-0">
-          <h1 className={`text-2xl font-bold ${titleColorClass}`}>PsiCuidar</h1>
+        <div className="h-16 pt-safe-area px-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center flex-shrink-0">
+          <h1 className={`text-xl font-bold ${titleColorClass}`}>PsiCuidar</h1>
           <button onClick={onClose} className="md:hidden mt-safe-area text-gray-500 hover:text-gray-700 focus:outline-none">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
-        <nav className="p-4 overflow-y-auto flex-1 pb-20 pb-safe-area">
+        <nav className="p-2 overflow-y-auto flex-1 pb-20 pb-safe-area scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600">
           <ul>
             {navItems.map(item => (
               <NavItem
