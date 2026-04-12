@@ -11,6 +11,7 @@ import ControleFuncionarios from './components/ControleFuncionarios';
 import Pagamentos from './components/Pagamentos';
 import Configuracoes from './components/Configuracoes';
 import ProfessionalLogin from './components/ProfessionalLogin';
+import FuncionarioLogin from './components/FuncionarioLogin';
 import { Appointment, AppointmentStatus } from './types';
 
 const App: React.FC = () => {
@@ -42,8 +43,20 @@ const App: React.FC = () => {
     ));
   };
 
-  // 🔥 TELA DE LOGIN PROFISSIONAL (INICIAL)
+  // 🔥 ROTA DE LOGIN (PROFISSIONAL OU FUNCIONÁRIO)
   if (!isAuthenticated) {
+    const isFuncRoute = window.location.pathname.includes('/funcionario');
+    
+    if (isFuncRoute) {
+      return (
+        <FuncionarioLogin 
+          onLoginSuccess={() => {
+            setIsAuthenticated(true);
+            setIsFuncionario(true);
+          }} 
+        />
+      );
+    }
     return <ProfessionalLogin onLoginSuccess={() => setIsAuthenticated(true)} />;
   }
 
