@@ -17,7 +17,7 @@ const NavItem: React.FC<{ icon: React.ReactNode; label: string; isActive: boolea
     <a
       href="#"
       onClick={(e) => { e.preventDefault(); onClick(); }}
-      className={`flex items-center p-4.5 rounded-xl transition-all duration-300 ${isActive
+      className={`flex items-center p-3.5 rounded-xl transition-all duration-300 ${isActive
         ? `${activeClass} shadow-xl scale-105`
         : `${textClass}`
         }`}
