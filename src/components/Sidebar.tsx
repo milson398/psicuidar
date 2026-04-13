@@ -17,8 +17,8 @@ const NavItem: React.FC<{ icon: React.ReactNode; label: string; isActive: boolea
     <a
       href="#"
       onClick={(e) => { e.preventDefault(); onClick(); }}
-      className={`flex items-center p-3.5 rounded-xl transition-all duration-300 ${isActive
-        ? `${activeClass} shadow-xl scale-105`
+      className={`flex items-center p-3.5 rounded-xl transition-all duration-300 min-h-[56px] ${isActive
+        ? `${activeClass} shadow-xl`
         : `${textClass}`
         }`}
     >
@@ -104,7 +104,7 @@ const Sidebar: React.FC<SidebarProps> = ({ setActivePage, activePage, themeColor
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
-        <nav className="p-2 overflow-y-auto flex-1 pb-20 pb-safe-area scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600">
+        <nav className="pt-8 px-2 overflow-y-auto flex-1 pb-20 pb-safe-area scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600">
           <ul>
             {navItems.map(item => (
               <NavItem

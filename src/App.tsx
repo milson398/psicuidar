@@ -120,7 +120,7 @@ const App: React.FC = () => {
         activePage={activePage}
         setActivePage={setActivePage}
         isFuncionario={isFuncionario}
-        themeColor="blue"
+        themeColor={isFuncionario ? 'green' : 'blue'}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
         onLogout={handleLogout}
@@ -134,7 +134,7 @@ const App: React.FC = () => {
           onNavigate={setActivePage}
           currentPage={activePage}
         />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900 scroll-smooth custom-scrollbar">
+        <main className="flex-1 overflow-x-hidden overflow-y-scroll bg-gray-50 dark:bg-gray-900 scroll-smooth custom-scrollbar">
           <div className="min-h-full">
              {renderPage()}
           </div>
