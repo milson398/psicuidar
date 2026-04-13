@@ -1,34 +1,31 @@
-/* Custom Scrollbar */
+/* Custom Scrollbar - Global Dark Theme Style */
 ::-webkit-scrollbar {
   width: 14px;
 }
+
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 10px;
-  border: 3px solid #f1f1f1;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #0f172a;
 }
 
-/* Dark mode scrollbar */
-.dark ::-webkit-scrollbar-track {
-  background: #1e293b;
+::-webkit-scrollbar-thumb {
+  background: #11ba82;
+  border-radius: 10px;
+  border: 3px solid #0f172a;
 }
-.dark ::-webkit-scrollbar-thumb {
-  background: #475569;
-  border: 3px solid #1e293b;
+
+::-webkit-scrollbar-thumb:hover {
+  background: #0ea371;
 }
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+
+/* Firefox Support */
+* {
+  scrollbar-width: auto;
+  scrollbar-color: #11ba82 #0f172a;
 }
 
 .custom-scrollbar {
   scrollbar-width: auto;
-  scrollbar-color: #888 #f1f1f1;
+  scrollbar-color: #11ba82 #0f172a;
 }
 
 @tailwind base;
