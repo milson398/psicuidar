@@ -128,59 +128,62 @@ const FuncionarioLogin: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                 </div>
             </div>
 
-            {/* LADO DIREITO: FORMULÁRIO (Área do Profissional) */}
-            <div className="flex-1 lg:w-1/2 flex flex-col items-center justify-center p-8 bg-white dark:bg-[#060b18]">
-                <div className="w-full max-w-md space-y-8">
-                    <div className="text-center lg:text-left">
-                        <h2 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white">
-                            Área do Profissional
+            {/* LADO DIREITO: FORMULÁRIO (Área do Funcionário) */}
+            <div 
+                className="flex-1 lg:w-1/2 flex flex-col items-center justify-center p-8 transition-colors duration-500"
+                style={{ backgroundColor: '#11ba82' }}
+            >
+                <div className="w-full max-w-md space-y-8 bg-[#060b18]/10 p-10 rounded-3xl backdrop-blur-sm border border-white/10 shadow-2xl">
+                    <div className="text-center">
+                        <h2 className="text-4xl font-black tracking-tight text-white mb-2">
+                            Área do Funcionário
                         </h2>
-                        <p className="mt-4 text-gray-500 dark:text-gray-400">
-                            Insira a senha de administrador para acessar.
+                        <p className="text-white/80 font-medium">
+                            Acesse o portal da equipe PsiCuidar
                         </p>
                     </div>
 
                     <form className="mt-10 space-y-6" onSubmit={handleSubmit}>
                         <div className="space-y-5">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    E-mail Admin
+                                <label className="block text-sm font-bold text-white mb-2 ml-1 uppercase tracking-wider opacity-90">
+                                    E-mail de Acesso
                                 </label>
                                 <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/></svg>
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <svg className="h-5 w-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/></svg>
                                     </div>
                                     <input
                                         type="email"
                                         required
                                         value={formData.email}
                                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        className="block w-full pl-10 pr-3 py-4 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white transition-all outline-none"
-                                        placeholder="admin@psicuidar.com"
+                                        className="block w-full pl-12 pr-4 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/40 focus:bg-white/20 focus:ring-4 focus:ring-white/10 transition-all outline-none"
+                                        placeholder="seuemail@exemplo.com"
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <label className="block text-sm font-bold text-white mb-2 ml-1 uppercase tracking-wider opacity-90">
                                     Senha
                                 </label>
-                                <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                <div className="relative group">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <svg className="h-5 w-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                                     </div>
                                     <input
                                         type={showPassword ? "text" : "password"}
                                         required
                                         value={formData.password}
                                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                        className="block w-full pl-10 pr-12 py-4 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white transition-all outline-none"
+                                        className="block w-full pl-12 pr-12 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/40 focus:bg-white/20 focus:ring-4 focus:ring-white/10 transition-all outline-none shadow-inner"
                                         placeholder="••••••••"
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-500"
+                                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-white/50 hover:text-white transition-colors"
                                     >
                                         {showPassword ? (
                                             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
@@ -193,33 +196,23 @@ const FuncionarioLogin: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                         </div>
 
                         {error && (
-                            <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-600 dark:text-red-400">
+                            <div className="p-4 rounded-xl bg-red-500 text-white text-sm font-bold shadow-lg animate-shake">
                                 {error}
                             </div>
                         )}
 
-                        <div className="flex items-center justify-between">
-                            <label className="flex items-center">
-                                <input type="checkbox" className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
-                                <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">Lembrar-me</span>
-                            </label>
-                            <button type="button" className="text-sm font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400">
-                                Esqueceu a senha?
-                            </button>
-                        </div>
-
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full flex justify-center py-4 px-4 border border-transparent text-lg font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-500/30 disabled:opacity-50"
+                            className="w-full flex justify-center py-5 px-4 bg-white text-[#11ba82] text-xl font-black rounded-2xl shadow-2xl hover:bg-white/90 transform active:scale-95 transition-all uppercase tracking-widest disabled:opacity-50"
                         >
-                            {isLoading ? 'Verificando...' : 'Acessar Sistema'}
+                            {isLoading ? 'Verificando...' : 'Acessar Portal'}
                         </button>
                     </form>
 
-                    <div className="mt-8 text-center">
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Precisa de suporte técnico? <a href="#" className="font-semibold text-blue-600 hover:text-blue-500">Contate-nos</a>
+                    <div className="mt-8 text-center pt-6 border-t border-white/10">
+                        <p className="text-sm text-white/60 font-medium tracking-wide">
+                            Portal exclusivo para colaboradores PsiCuidar
                         </p>
                     </div>
                 </div>

@@ -64,13 +64,13 @@ const Sidebar: React.FC<SidebarProps> = ({ setActivePage, activePage, themeColor
   const navItems = [
     { label: 'Dashboard', icon: <DashboardIcon /> },
     { label: 'Minha Agenda', icon: <CalendarIcon /> },
-    { label: 'Relatórios Gerenciais', icon: <ChartBarIcon /> },
     { label: 'Avaliação', icon: <ClipboardCheckIcon /> },
     { label: 'Intervenção', icon: <PuzzleIcon /> },
     { label: 'Matrículas', icon: <UserGroupIcon /> },
   ];
 
   if (!isFuncionario) {
+    navItems.splice(2, 0, { label: 'Relatórios Gerenciais', icon: <ChartBarIcon /> });
     navItems.push({ label: 'Equipe', icon: <TeamIcon /> });
     navItems.push({ label: 'Controle de Pagamentos', icon: <CurrencyDollarIcon /> });
     navItems.push({ label: 'Configurações', icon: <CogIcon /> });
