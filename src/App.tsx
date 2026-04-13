@@ -18,6 +18,8 @@ const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isFuncionario, setIsFuncionario] = useState(false);
   const [activePage, setActivePage] = useState('Dashboard');
+  const [userName, setUserName] = useState('Dra. Ana Silva');
+  const [userEmail, setUserEmail] = useState('admin@psicuidar.com');
   const [appointments, setAppointments] = useState<Appointment[]>([
     {
       id: '1',
@@ -50,9 +52,10 @@ const App: React.FC = () => {
     if (isFuncRoute) {
       return (
         <FuncionarioLogin 
-          onLoginSuccess={() => {
+          onLoginSuccess={(name) => {
             setIsAuthenticated(true);
             setIsFuncionario(true);
+            if (name) setUserName(name);
           }} 
         />
       );
@@ -64,7 +67,7 @@ const App: React.FC = () => {
   const renderPage = () => {
     switch (activePage) {
       case 'Dashboard':
-        return <Dashboard appointments={appointments} onUpdateStatus={handleUpdateStatus} />;
+        return <Dashboard appointments={appointments} onUpdateStatus={handleUpdateStatus} userName={userName} />;
       case 'Minha Agenda':
         return (
           <MinhaAgenda 
@@ -90,26 +93,25 @@ const App: React.FC = () => {
       case 'Configurações':
         return (
           <Configuracoes 
-            userProfile={{ name: 'Dra. Ana Silva', email: 'admin@psicuidar.com', role: 'Administradora' }}
+            userProfile={{ name: userName, email: userEmail, role: isFuncionario ? 'Funcionário' : 'Administradora' }}
             onUpdateProfile={() => {}}
             currentTheme="dark"
             onUpdateTheme={() => {}}
-            onUpdateNotificationSettings={() => {}}
             onSyncGoogleCalendar={() => {}}
           />
         );
       default:
-        return <Dashboard appointments={appointments} onUpdateStatus={handleUpdateStatus} />;
+        return <Dashboard appointments={appointments} onUpdateStatus={handleUpdateStatus} userName={userName} />;
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
       <Sidebar
         activePage={activePage}
         setActivePage={setActivePage}
         isFuncionario={isFuncionario}
-        themeColor="#2563eb"
+        themeColor="blue"
         isOpen={true}
         onClose={() => {}}
         onLogout={() => setIsAuthenticated(false)}
@@ -118,12 +120,12 @@ const App: React.FC = () => {
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <Header 
           onLogout={() => setIsAuthenticated(false)}
-          userProfile={{ name: 'Dra. Ana Silva', email: 'admin@psicuidar.com', role: 'Administradora' }}
+          userProfile={{ name: userName, email: userEmail, role: isFuncionario ? 'Funcionário' : 'Administradora' }}
           onMenuToggle={() => {}}
           onNavigate={setActivePage}
           currentPage={activePage}
         />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900 scroll-smooth">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900 scroll-smooth custom-scrollbar">
           <div className="min-h-full">
              {renderPage()}
           </div>

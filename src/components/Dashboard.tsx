@@ -5,6 +5,7 @@ import { Appointment, AppointmentStatus } from '../types';
 interface DashboardProps {
   appointments: Appointment[];
   onUpdateStatus: (id: string, status: AppointmentStatus) => void;
+  userName?: string;
 }
 
 const AppointmentCard: React.FC<{ appointment: Appointment, onUpdateStatus: (id: string, status: AppointmentStatus) => void }> = ({ appointment, onUpdateStatus }) => {
@@ -97,7 +98,7 @@ const AppointmentCard: React.FC<{ appointment: Appointment, onUpdateStatus: (id:
   );
 };
 
-const Dashboard: React.FC<DashboardProps> = ({ appointments, onUpdateStatus }) => {
+const Dashboard: React.FC<DashboardProps> = ({ appointments, onUpdateStatus, userName = 'Profissional' }) => {
   // Ordenar: Pendentes primeiro, depois data mais próxima
   const sortedAppointments = [...appointments].sort((a, b) => {
     if (a.status === AppointmentStatus.PENDENTE && b.status !== AppointmentStatus.PENDENTE) return -1;
@@ -106,10 +107,10 @@ const Dashboard: React.FC<DashboardProps> = ({ appointments, onUpdateStatus }) =
   });
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 pt-6 sm:pt-8 pb-8">
+    <div className="container mx-auto px-4 sm:px-6 pt-6 sm:pt-8 pb-8 custom-scrollbar">
       <div className="mb-10 text-center lg:text-left">
-        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Dashboard</h1>
-        <p className="mt-2 text-gray-500 dark:text-gray-400">Olá, {appointments.length > 0 ? 'Dra. Ana Silva' : 'bem-vinda'}! Veja seus agendamentos para hoje.</p>
+        <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">Dashboard</h1>
+        <p className="mt-3 text-lg text-gray-500 dark:text-gray-400 font-bold">Olá, {userName}! Veja seus agendamentos para hoje.</p>
       </div>
 
       {sortedAppointments.length === 0 ? (
