@@ -96,7 +96,7 @@ const Sidebar: React.FC<SidebarProps> = ({ setActivePage, activePage, themeColor
             md:relative md:translate-x-0 
             ${isOpen ? 'translate-x-0' : '-translate-x-full'}
             ${containerClass}
-            flex flex-col h-full
+            flex flex-col h-screen
         `}>
         <div className="h-16 pt-safe-area px-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center flex-shrink-0">
           <h1 className={`text-xl font-bold ${titleColorClass}`}>PsiCuidar</h1>

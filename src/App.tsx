@@ -115,7 +115,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
       <Sidebar
         activePage={activePage}
         setActivePage={setActivePage}
