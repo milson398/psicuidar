@@ -17,6 +17,7 @@ import { Appointment, AppointmentStatus } from './types';
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isFuncionario, setIsFuncionario] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activePage, setActivePage] = useState('Dashboard');
   const [userName, setUserName] = useState('Dra. Ana Silva');
   const [userEmail, setUserEmail] = useState('admin@psicuidar.com');
@@ -105,6 +106,14 @@ const App: React.FC = () => {
     }
   };
 
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setIsFuncionario(false);
+    setUserName('Dra. Ana Silva');
+    setUserEmail('admin@psicuidar.com');
+    setIsSidebarOpen(false);
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
       <Sidebar
@@ -112,16 +121,16 @@ const App: React.FC = () => {
         setActivePage={setActivePage}
         isFuncionario={isFuncionario}
         themeColor="blue"
-        isOpen={true}
-        onClose={() => {}}
-        onLogout={() => setIsAuthenticated(false)}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        onLogout={handleLogout}
       />
 
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <Header 
-          onLogout={() => setIsAuthenticated(false)}
+          onLogout={handleLogout}
           userProfile={{ name: userName, email: userEmail, role: isFuncionario ? 'Funcionário' : 'Administradora' }}
-          onMenuToggle={() => {}}
+          onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)}
           onNavigate={setActivePage}
           currentPage={activePage}
         />
