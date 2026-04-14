@@ -26,6 +26,9 @@ const App: React.FC = () => {
   const [currentTheme, setCurrentTheme] = useState<ThemeColor>('blue');
   const [currentBackground, setCurrentBackground] = useState<ThemeColor>('blue');
   const [loading, setLoading] = useState(false);
+  
+  // 🔥 ESTADO PARA RESPOSTA DO ALUNO
+  const [studentResponse, setStudentResponse] = useState<{ success: boolean; msg: string } | null>(null);
 
   // 🔥 BUSCAR AGENDAMENTOS DO SUPABASE
   const fetchAppointments = async () => {
@@ -56,6 +59,48 @@ const App: React.FC = () => {
     }
   };
 
+  // 🔥 PROCESSAR RESPOSTA DO WHATSAPP (TOKEN)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const res = params.get('res');
+
+    if (token && res) {
+      const processResponse = async () => {
+        let newStatus: AppointmentStatus = AppointmentStatus.PENDENTE;
+        let msg = "";
+
+        if (res === 'confirm') {
+          newStatus = AppointmentStatus.CONFIRMADO;
+          msg = "Consulta confirmada com sucesso! Obrigado.";
+        } else if (res === 'cancel') {
+          newStatus = AppointmentStatus.CANCELADO;
+          msg = "Consulta cancelada conforme solicitado.";
+        } else if (res === 'resched') {
+          newStatus = AppointmentStatus.REMARCAR;
+          msg = "Recebemos seu pedido de reagendamento. Entraremos em contato em breve.";
+        }
+
+        try {
+          const { error } = await supabase
+            .from('appointments')
+            .update({ 
+               status: newStatus, 
+               is_viewed: false // Faz o botão brilhar (neon) no dashboard do profissional
+            })
+            .eq('confirmation_token', token);
+
+          if (error) throw error;
+          setStudentResponse({ success: true, msg });
+        } catch (err) {
+          console.error("Erro ao processar token:", err);
+          setStudentResponse({ success: false, msg: "Link inválido ou expirado." });
+        }
+      };
+      processResponse();
+    }
+  }, []);
+
   useEffect(() => {
     if (isAuthenticated) {
       fetchAppointments();
@@ -66,7 +111,7 @@ const App: React.FC = () => {
     try {
       const { error } = await supabase
         .from('appointments')
-        .update({ status, is_viewed: true })
+        .update({ status, is_viewed: true }) // Ao clicar no Dashboard, a notificação (brilho) some
         .eq('id', id);
       if (error) throw error;
       fetchAppointments();
@@ -85,7 +130,8 @@ const App: React.FC = () => {
           whatsapp: data.whatsapp,
           date_time: data.dateTime.toISOString(),
           session_type: data.sessionType,
-          user_id: user?.id
+          user_id: user?.id,
+          is_viewed: true // Novo agendamento começa como visualizado pelo profissional
         }]);
       if (error) throw error;
       fetchAppointments();
@@ -125,6 +171,28 @@ const App: React.FC = () => {
       console.error('Erro ao excluir agendamento:', error);
     }
   };
+
+  // 🔥 TELA DE SUCESSO PARA O ALUNO (WHATSAPP)
+  if (studentResponse) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-2xl max-w-md w-full text-center border border-gray-100 dark:border-gray-700">
+          <div className={`mb-6 flex justify-center ${studentResponse.success ? 'text-green-500' : 'text-red-500'}`}>
+            {studentResponse.success ? (
+              <svg className="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            ) : (
+              <svg className="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            )}
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">{studentResponse.success ? 'Recebido!' : 'Ops!'}</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-8 text-lg font-medium">{studentResponse.msg}</p>
+          <div className="text-sm text-gray-400 py-4 border-t border-gray-100 dark:border-gray-700">
+            PSICUIDAR - Gestão Profissional e Segura
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     const isFuncRoute = window.location.pathname.includes('/funcionario');
