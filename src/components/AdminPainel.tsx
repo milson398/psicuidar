@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+﻿import React, { useState, useEffect } from 'react';
+import { supabase } from '../services/supabase';
 
 interface AdminUser {
     user_id: string;
@@ -28,7 +28,7 @@ const AdminPainel: React.FC = () => {
                 setUsers(data as AdminUser[]);
             }
         } catch (err: any) {
-            console.error('Erro ao buscar usuários:', err);
+            console.error('Erro ao buscar usuÃ¡rios:', err);
             setError(err.message || 'Falha ao carregar a lista de clientes.');
         } finally {
             setIsLoading(false);
@@ -111,7 +111,7 @@ const AdminPainel: React.FC = () => {
                                 <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Cliente</th>
                                 <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Cadastro</th>
                                 <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status (SaaS)</th>
-                                <th scope="col" className="px-6 py-4 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ações</th>
+                                <th scope="col" className="px-6 py-4 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">AÃ§Ãµes</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">

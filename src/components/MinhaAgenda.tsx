@@ -46,10 +46,10 @@ const AgendaModal: React.FC<{
             const yyyy = initialData.dateTime.getFullYear();
             const mm = String(initialData.dateTime.getMonth() + 1).padStart(2, '0');
             const dd = String(initialData.dateTime.getDate()).padStart(2, '0');
-            setDate(${yyyy}--);
+            setDate(`${yyyy}-${mm}-${dd}`);
             const hh = String(initialData.dateTime.getHours()).padStart(2, '0');
             const min = String(initialData.dateTime.getMinutes()).padStart(2, '0');
-            setTime(${hh}:);
+            setTime(`${hh}:${min}`);
             setSessionType(initialData.sessionType);
             setSearchTerm(initialData.studentName);
         } else {

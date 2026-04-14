@@ -12,7 +12,7 @@ import Pagamentos from './components/Pagamentos';
 import Configuracoes from './components/Configuracoes';
 import ProfessionalLogin from './components/ProfessionalLogin';
 import FuncionarioLogin from './components/FuncionarioLogin';
-import { Appointment, AppointmentStatus } from './types';
+import { Appointment, AppointmentStatus, ThemeColor } from './types';
 import { supabase } from './services/supabase';
 
 const App: React.FC = () => {
@@ -23,6 +23,8 @@ const App: React.FC = () => {
   const [userName, setUserName] = useState('Dra. Ana Silva');
   const [userEmail, setUserEmail] = useState('admin@psicuidar.com');
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [currentTheme, setCurrentTheme] = useState<ThemeColor>('blue');
+  const [currentBackground, setCurrentBackground] = useState<ThemeColor>('blue');
   const [loading, setLoading] = useState(false);
 
   // 🔥 BUSCAR AGENDAMENTOS DO SUPABASE
@@ -169,11 +171,18 @@ const App: React.FC = () => {
       case 'Configurações':
         return (
           <Configuracoes 
-            userProfile={{ name: userName, email: userEmail, role: isFuncionario ? 'Funcionário' : 'Administradora' }}
-            onUpdateProfile={() => {}}
-            currentTheme="dark"
-            onUpdateTheme={() => {}}
-            onSyncGoogleCalendar={() => {}}
+            userProfile={{ 
+              name: userName, 
+              email: userEmail, 
+              role: isFuncionario ? 'Funcionário' : 'Administradora',
+              registry: '',
+              photoUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ana'
+            }}
+            onUpdateProfile={(p) => setUserName(p.name)}
+            currentTheme={currentTheme}
+            onUpdateTheme={setCurrentTheme}
+            currentBackground={currentBackground}
+            onUpdateBackground={setCurrentBackground}
           />
         );
       default:
@@ -195,7 +204,7 @@ const App: React.FC = () => {
         activePage={activePage}
         setActivePage={setActivePage}
         isFuncionario={isFuncionario}
-        themeColor={isFuncionario ? 'green' : 'blue'}
+        themeColor={currentTheme}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
         onLogout={handleLogout}
@@ -203,12 +212,18 @@ const App: React.FC = () => {
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <Header 
           onLogout={handleLogout}
-          userProfile={{ name: userName, email: userEmail, role: isFuncionario ? 'Funcionário' : 'Administradora' }}
+          userProfile={{ 
+            name: userName, 
+            email: userEmail, 
+            role: isFuncionario ? 'Funcionário' : 'Administradora',
+            registry: '',
+            photoUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ana'
+          }}
           onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)}
           onNavigate={setActivePage}
           currentPage={activePage}
         />
-        <main className="flex-1 overflow-x-hidden overflow-y-scroll bg-gray-50 dark:bg-gray-900 scroll-smooth custom-scrollbar">
+        <main className={`flex-1 overflow-x-hidden overflow-y-scroll bg-gray-50 dark:bg-gray-900 scroll-smooth custom-scrollbar`}>
           <div className="min-h-full">
              {renderPage()}
           </div>
