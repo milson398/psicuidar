@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';
@@ -16,14 +16,20 @@ import { Appointment, AppointmentStatus, ThemeColor } from './types';
 import { supabase } from './services/supabase';
 
 const App: React.FC = () => {
-  // Verificação de parâmetros de URL em cada renderização para garantir detecção instantânea
-  const params = new URLSearchParams(window.location.search);
-  const urlToken = params.get('token');
-  const urlRes = params.get('res');
-  const hasTokenParams = !!(urlToken && urlRes);
-
+  // Estado de autenticação persistente ou inicial
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isFuncionario, setIsFuncionario] = useState(false);
+  
+  // Parâmetros de URL para resposta de aluno
+  const queryParams = new URLSearchParams(window.location.search);
+  const urlToken = queryParams.get('token');
+  const urlRes = queryParams.get('res');
+  const hasTokenParams = !!(urlToken && urlRes);
+
+  const [isProcessingToken, setIsProcessingToken] = useState(hasTokenParams);
+  const [studentResponse, setStudentResponse] = useState<{ success: boolean; msg: string } | null>(null);
+
+  // Estados da interface
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activePage, setActivePage] = useState('Dashboard');
   const [userName, setUserName] = useState('Dra. Ana Silva');
@@ -31,9 +37,14 @@ const App: React.FC = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [currentTheme, setCurrentTheme] = useState<ThemeColor>('blue');
   const [currentBackground, setCurrentBackground] = useState<ThemeColor>('blue');
-  
-  const [isProcessingToken, setIsProcessingToken] = useState(hasTokenParams);
-  const [studentResponse, setStudentResponse] = useState<{ success: boolean; msg: string } | null>(null);
+
+  // 🔥 DETECÇÃO REFORÇADA DA ROTA (Evita confusão entre Profissional e Funcionário)
+  const isFuncionarioRoute = useMemo(() => {
+    const path = window.location.pathname.toLowerCase();
+    // No celular, garantimos que "/" ou caminhos vazios NUNCA sejam confundidos com o portal do funcionário
+    if (path === '/' || path === '' || path === '/index.html') return false;
+    return path.includes('funcionario') || window.location.hash.includes('funcionario');
+  }, []);
 
   useEffect(() => {
     if (urlToken && urlRes) {
@@ -80,11 +91,7 @@ const App: React.FC = () => {
     })));
   };
 
-  // -------------------------------------------------------------------------
-  // LÓGICA DE RENDERIZAÇÃO (ORDEM DE PRECEDÊNCIA)
-  // -------------------------------------------------------------------------
-
-  // 1. Se temos uma resposta final do aluno, mostramos a tela de sucesso
+  // 1. TELA DE SUCESSO (ALUNO)
   if (studentResponse) {
     return (
       <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-4">
@@ -108,30 +115,40 @@ const App: React.FC = () => {
     );
   }
 
-  // 2. Se estamos processando um token, mostramos carregando (bloqueia o login)
+  // 2. PROCESSANDO TOKEN (ALUNO)
   if (isProcessingToken || hasTokenParams) {
     return (
       <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-14 w-14 border-t-2 border-b-2 border-[#11ba82] mx-auto mb-6"></div>
-          <p className="text-white text-lg font-medium">Autenticando resposta do aluno...</p>
+          <p className="text-white text-lg font-medium">Sincronizando resposta...</p>
         </div>
       </div>
     );
   }
 
-  // 3. Se não houver token E não estiver logado, mostramos o login
+  // 3. AUTENTICAÇÃO (PROFISSIONAL OU FUNCIONÁRIO)
   if (!isAuthenticated) {
-    const isFunc = window.location.pathname.includes('/funcionario');
-    if (isFunc) return <FuncionarioLogin onLoginSuccess={(name) => { setIsAuthenticated(true); setIsFuncionario(true); if (name) setUserName(name); }} />;
+    // Se a rota for EXPLICITAMENTE de funcionário, mostra o login verde. Caso contrário, Admin.
+    if (isFuncionarioRoute) {
+      return <FuncionarioLogin onLoginSuccess={(name) => { setIsAuthenticated(true); setIsFuncionario(true); if (name) setUserName(name); }} />;
+    }
     return <ProfessionalLogin onLoginSuccess={() => setIsAuthenticated(true)} />;
   }
 
-  // 4. Se estiver logado, mostra o sistema normal
+  // 4. SISTEMA PRINCIPAL
   const renderPage = () => {
     switch (activePage) {
       case 'Dashboard': return <Dashboard appointments={appointments} onUpdateStatus={(id, s) => supabase.from('appointments').update({ status: s, is_viewed: true }).eq('id', id).then(() => fetchAppointments())} userName={userName} />;
       case 'Minha Agenda': return <MinhaAgenda appointments={appointments} onAddAppointment={async (data) => { const { data: { user } } = await supabase.auth.getUser(); await supabase.from('appointments').insert([{ patient_name: data.studentName, whatsapp: data.whatsapp, date_time: data.dateTime.toISOString(), session_type: data.sessionType, user_id: user?.id, is_viewed: true }]); fetchAppointments(); }} onEditAppointment={async (id, data) => { const updateData: any = {}; if (data.studentName) updateData.patient_name = data.studentName; if (data.whatsapp) updateData.whatsapp = data.whatsapp; if (data.dateTime) updateData.date_time = data.dateTime.toISOString(); if (data.sessionType) updateData.session_type = data.sessionType; await supabase.from('appointments').update(updateData).eq('id', id); fetchAppointments(); }} onDeleteAppointment={async (id) => { await supabase.from('appointments').delete().eq('id', id); fetchAppointments(); }} />;
+      case 'Relatórios Gerenciais': return <Relatorios appointments={appointments} />;
+      case 'Avaliação': return <Avaliacao />;
+      case 'Intervencao':
+      case 'Intervenção': return <Intervencao />;
+      case 'Matrículas': return <Matriculas />;
+      case 'Equipe': return <ControleFuncionarios />;
+      case 'Controle de Pagamentos': return <Pagamentos />;
+      case 'Configurações': return <Configuracoes userProfile={{ name: userName, email: userEmail, role: isFuncionario ? 'Funcionário' : 'Administradora', registry: '', photoUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ana' }} onUpdateProfile={(p) => setUserName(p.name)} currentTheme={currentTheme} onUpdateTheme={setCurrentTheme} currentBackground={currentBackground} onUpdateBackground={setCurrentBackground} />;
       default: return <Dashboard appointments={appointments} onUpdateStatus={(id, s) => supabase.from('appointments').update({ status: s, is_viewed: true }).eq('id', id).then(() => fetchAppointments())} userName={userName} />;
     }
   };
