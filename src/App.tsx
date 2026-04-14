@@ -16,11 +16,11 @@ import { Appointment, AppointmentStatus, ThemeColor } from './types';
 import { supabase } from './services/supabase';
 
 const App: React.FC = () => {
-  // Verificação síncrona inicial de parâmetros de token
-  const queryParams = new URLSearchParams(window.location.search);
-  const token = queryParams.get('token');
-  const res = queryParams.get('res');
-  const initialHasToken = !!(token && res);
+  // Verificação de parâmetros de URL em cada renderização para garantir detecção instantânea
+  const params = new URLSearchParams(window.location.search);
+  const urlToken = params.get('token');
+  const urlRes = params.get('res');
+  const hasTokenParams = !!(urlToken && urlRes);
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isFuncionario, setIsFuncionario] = useState(false);
@@ -32,37 +32,20 @@ const App: React.FC = () => {
   const [currentTheme, setCurrentTheme] = useState<ThemeColor>('blue');
   const [currentBackground, setCurrentBackground] = useState<ThemeColor>('blue');
   
-  const [isProcessingToken, setIsProcessingToken] = useState(initialHasToken);
+  const [isProcessingToken, setIsProcessingToken] = useState(hasTokenParams);
   const [studentResponse, setStudentResponse] = useState<{ success: boolean; msg: string } | null>(null);
 
-  const fetchAppointments = async () => {
-    try {
-      const { data, error } = await supabase.from('appointments').select('*').order('date_time', { ascending: true });
-      if (error) throw error;
-      if (data) setAppointments(data.map((app: any) => ({
-        id: app.id,
-        studentName: app.patient_name,
-        whatsapp: app.whatsapp,
-        dateTime: new Date(app.date_time),
-        sessionType: app.session_type,
-        status: app.status as AppointmentStatus,
-        confirmationToken: app.confirmation_token,
-        isViewed: app.is_viewed
-      })));
-    } catch (error) { console.error('Erro ao buscar agendamentos:', error); }
-  };
-
   useEffect(() => {
-    if (token && res) {
+    if (urlToken && urlRes) {
       const processResponse = async () => {
-        let newStatus: AppointmentStatus = AppointmentStatus.PENDENTE;
+        let newStatus = AppointmentStatus.PENDENTE;
         let msg = "";
-        if (res === 'confirm') { newStatus = AppointmentStatus.CONFIRMADO; msg = "Consulta confirmada com sucesso! Obrigado."; }
-        else if (res === 'cancel') { newStatus = AppointmentStatus.CANCELADO; msg = "Consulta cancelada conforme solicitado."; }
-        else if (res === 'resched') { newStatus = AppointmentStatus.REMARCAR; msg = "Recebemos seu pedido de reagendamento. Entraremos em contato em breve."; }
+        if (urlRes === 'confirm') { newStatus = AppointmentStatus.CONFIRMADO; msg = "Consulta confirmada com sucesso! Obrigado."; }
+        else if (urlRes === 'cancel') { newStatus = AppointmentStatus.CANCELADO; msg = "Consulta cancelada conforme solicitado."; }
+        else if (urlRes === 'resched') { newStatus = AppointmentStatus.REMARCAR; msg = "Recebemos seu pedido de reagendamento. Entraremos em contato em breve."; }
 
         try {
-          const { error } = await supabase.from('appointments').update({ status: newStatus, is_viewed: false }).eq('confirmation_token', token);
+          const { error } = await supabase.from('appointments').update({ status: newStatus, is_viewed: false }).eq('confirmation_token', urlToken);
           if (error) throw error;
           setStudentResponse({ success: true, msg });
         } catch (err) {
@@ -73,19 +56,35 @@ const App: React.FC = () => {
       };
       processResponse();
     }
-  }, [token, res]);
+  }, [urlToken, urlRes]);
 
   useEffect(() => {
     if (isAuthenticated) {
       fetchAppointments();
-      const subscription = supabase.channel('appointments-changes').on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => fetchAppointments()).subscribe();
-      return () => { supabase.removeChannel(subscription); };
+      const sub = supabase.channel('app-sync').on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => fetchAppointments()).subscribe();
+      return () => { supabase.removeChannel(sub); };
     }
   }, [isAuthenticated]);
 
-  // ORDEM DE RENDERIZAÇÃO CRÍTICA
-  
-  // 1. Resposta do Aluno (Tela Final)
+  const fetchAppointments = async () => {
+    const { data } = await supabase.from('appointments').select('*').order('date_time', { ascending: true });
+    if (data) setAppointments(data.map((app: any) => ({
+      id: app.id,
+      studentName: app.patient_name,
+      whatsapp: app.whatsapp,
+      dateTime: new Date(app.date_time),
+      sessionType: app.session_type,
+      status: app.status as AppointmentStatus,
+      confirmationToken: app.confirmation_token,
+      isViewed: app.is_viewed
+    })));
+  };
+
+  // -------------------------------------------------------------------------
+  // LÓGICA DE RENDERIZAÇÃO (ORDEM DE PRECEDÊNCIA)
+  // -------------------------------------------------------------------------
+
+  // 1. Se temos uma resposta final do aluno, mostramos a tela de sucesso
   if (studentResponse) {
     return (
       <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-4">
@@ -101,36 +100,34 @@ const App: React.FC = () => {
               </svg>
             </div>
           </div>
-          <h2 className="text-4xl font-bold text-white mb-6 capitalize">{studentResponse.success ? 'Recebido!' : 'Ops!'}</h2>
-          <p className="text-gray-300 mb-10 text-xl font-medium">{studentResponse.msg}</p>
+          <h2 className="text-4xl font-bold text-white mb-6 uppercase tracking-tight">{studentResponse.success ? 'Recebido!' : 'Ops!'}</h2>
+          <p className="text-gray-300 mb-10 text-xl font-medium leading-relaxed">{studentResponse.msg}</p>
           <div className="pt-6 border-t border-gray-700/50 text-xs text-gray-500 uppercase tracking-widest font-semibold">PSICUIDAR - Gestão Profissional e Segura</div>
         </div>
       </div>
     );
   }
 
-  // 2. Processando Token (Carregamento)
-  if (isProcessingToken) {
+  // 2. Se estamos processando um token, mostramos carregando (bloqueia o login)
+  if (isProcessingToken || hasTokenParams) {
     return (
       <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-14 w-14 border-t-2 border-b-2 border-[#11ba82] mx-auto mb-6"></div>
-          <p className="text-white text-lg font-medium">Sincronizando resposta...</p>
+          <p className="text-white text-lg font-medium">Autenticando resposta do aluno...</p>
         </div>
       </div>
     );
   }
 
-  // 3. Autenticação (Apenas se não houver token pendente)
+  // 3. Se não houver token E não estiver logado, mostramos o login
   if (!isAuthenticated) {
-    // Se o link do WhatsApp por algum motivo levar para /funcionario, ignoramos se houver token
-    // Mas se não houver token, verificamos a rota
-    if (window.location.pathname.includes('/funcionario')) {
-      return <FuncionarioLogin onLoginSuccess={(name) => { setIsAuthenticated(true); setIsFuncionario(true); if (name) setUserName(name); }} />;
-    }
+    const isFunc = window.location.pathname.includes('/funcionario');
+    if (isFunc) return <FuncionarioLogin onLoginSuccess={(name) => { setIsAuthenticated(true); setIsFuncionario(true); if (name) setUserName(name); }} />;
     return <ProfessionalLogin onLoginSuccess={() => setIsAuthenticated(true)} />;
   }
 
+  // 4. Se estiver logado, mostra o sistema normal
   const renderPage = () => {
     switch (activePage) {
       case 'Dashboard': return <Dashboard appointments={appointments} onUpdateStatus={(id, s) => supabase.from('appointments').update({ status: s, is_viewed: true }).eq('id', id).then(() => fetchAppointments())} userName={userName} />;
