@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';
@@ -13,6 +13,7 @@ import Configuracoes from './components/Configuracoes';
 import ProfessionalLogin from './components/ProfessionalLogin';
 import FuncionarioLogin from './components/FuncionarioLogin';
 import { Appointment, AppointmentStatus } from './types';
+import { supabase } from './services/supabase';
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -21,35 +22,110 @@ const App: React.FC = () => {
   const [activePage, setActivePage] = useState('Dashboard');
   const [userName, setUserName] = useState('Dra. Ana Silva');
   const [userEmail, setUserEmail] = useState('admin@psicuidar.com');
-  const [appointments, setAppointments] = useState<Appointment[]>([
-    {
-      id: '1',
-      studentName: 'João Silva',
-      sessionType: 'Avaliação',
-      dateTime: new Date(2024, 3, 10, 14, 0),
-      status: AppointmentStatus.PENDENTE,
-      isViewed: false
-    },
-    {
-      id: '2',
-      studentName: 'Maria Oliveira',
-      sessionType: 'Intervenção',
-      dateTime: new Date(2024, 3, 10, 15, 0),
-      status: AppointmentStatus.CONFIRMADO,
-      isViewed: true
-    }
-  ]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const handleUpdateStatus = (id: string, status: AppointmentStatus) => {
-    setAppointments(prev => prev.map(app => 
-      app.id === id ? { ...app, status, isViewed: true } : app
-    ));
+  // 🔥 BUSCAR AGENDAMENTOS DO SUPABASE
+  const fetchAppointments = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('appointments')
+        .select('*')
+        .order('date_time', { ascending: true });
+
+      if (error) throw error;
+      if (data) {
+        setAppointments(data.map((app: any) => ({
+          id: app.id,
+          studentName: app.patient_name,
+          whatsapp: app.whatsapp,
+          dateTime: new Date(app.date_time),
+          sessionType: app.session_type,
+          status: app.status as AppointmentStatus,
+          confirmationToken: app.confirmation_token,
+          isViewed: app.is_viewed
+        })));
+      }
+    } catch (error) {
+      console.error('Erro ao buscar agendamentos:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // 🔥 ROTA DE LOGIN (PROFISSIONAL OU FUNCIONÁRIO)
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchAppointments();
+    }
+  }, [isAuthenticated]);
+
+  const handleUpdateStatus = async (id: string, status: AppointmentStatus) => {
+    try {
+      const { error } = await supabase
+        .from('appointments')
+        .update({ status, is_viewed: true })
+        .eq('id', id);
+      if (error) throw error;
+      fetchAppointments();
+    } catch (error) {
+      console.error('Erro ao atualizar status:', error);
+    }
+  };
+
+  const handleAddAppointment = async (data: Omit<Appointment, 'id' | 'status'>) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { error } = await supabase
+        .from('appointments')
+        .insert([{
+          patient_name: data.studentName,
+          whatsapp: data.whatsapp,
+          date_time: data.dateTime.toISOString(),
+          session_type: data.sessionType,
+          user_id: user?.id
+        }]);
+      if (error) throw error;
+      fetchAppointments();
+    } catch (error) {
+      console.error('Erro ao adicionar agendamento:', error);
+    }
+  };
+
+  const handleEditAppointment = async (id: string, data: Partial<Appointment>) => {
+    try {
+      const updateData: any = {};
+      if (data.studentName) updateData.patient_name = data.studentName;
+      if (data.whatsapp) updateData.whatsapp = data.whatsapp;
+      if (data.dateTime) updateData.date_time = data.dateTime.toISOString();
+      if (data.sessionType) updateData.session_type = data.sessionType;
+
+      const { error } = await supabase
+        .from('appointments')
+        .update(updateData)
+        .eq('id', id);
+      if (error) throw error;
+      fetchAppointments();
+    } catch (error) {
+      console.error('Erro ao editar agendamento:', error);
+    }
+  };
+
+  const handleDeleteAppointment = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('appointments')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      fetchAppointments();
+    } catch (error) {
+      console.error('Erro ao excluir agendamento:', error);
+    }
+  };
+
   if (!isAuthenticated) {
     const isFuncRoute = window.location.pathname.includes('/funcionario');
-    
     if (isFuncRoute) {
       return (
         <FuncionarioLogin 
@@ -64,7 +140,6 @@ const App: React.FC = () => {
     return <ProfessionalLogin onLoginSuccess={() => setIsAuthenticated(true)} />;
   }
 
-  // 🔥 RENDERIZA PÁGINA ATIVA COM OS DADOS NECESSÁRIOS
   const renderPage = () => {
     switch (activePage) {
       case 'Dashboard':
@@ -73,9 +148,9 @@ const App: React.FC = () => {
         return (
           <MinhaAgenda 
             appointments={appointments} 
-            onAddAppointment={() => {}} 
-            onEditAppointment={() => {}} 
-            onDeleteAppointment={() => {}} 
+            onAddAppointment={handleAddAppointment} 
+            onEditAppointment={handleEditAppointment} 
+            onDeleteAppointment={handleDeleteAppointment} 
           />
         );
       case 'Relatórios Gerenciais':
@@ -125,7 +200,6 @@ const App: React.FC = () => {
         onClose={() => setIsSidebarOpen(false)}
         onLogout={handleLogout}
       />
-
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <Header 
           onLogout={handleLogout}
