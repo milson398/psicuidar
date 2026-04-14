@@ -1,5 +1,4 @@
-
-import React from 'react';
+﻿import React from 'react';
 import { Appointment, AppointmentStatus } from '../types';
 
 interface DashboardProps {
@@ -19,38 +18,35 @@ const AppointmentCard: React.FC<{ appointment: Appointment, onUpdateStatus: (id:
     }
   };
 
-  const getButtonClasses = (status: AppointmentStatus, buttonType: 'confirm' | 'cancel' | 'reschedule', isViewed: boolean) => {
+  const getButtonClasses = (currentStatus: AppointmentStatus, buttonType: 'confirm' | 'cancel' | 'reschedule', isViewed: boolean) => {
     const baseClasses = "flex-1 py-4 px-2 text-sm sm:text-base rounded-lg font-black text-white transition-all duration-300 focus:outline-none shadow-xl transform active:scale-95 whitespace-nowrap border-2";
-
-    if (status === AppointmentStatus.PENDENTE) {
-      if (!isViewed) {
-         return `${baseClasses} bg-blue-600 border-blue-400 animate-neon-blue`;
+    
+    // Se o profissional ainda não viu a resposta (isViewed === false)
+    if (!isViewed) {
+      // Se está pendente, todos brilham Azul
+      if (currentStatus === AppointmentStatus.PENDENTE) {
+        return `${baseClasses} bg-blue-600 border-blue-400 animate-neon-blue`;
       }
-      return `${baseClasses} bg-blue-600 border-blue-700 hover:bg-blue-700 opacity-90`;
-    }
-
-    if (buttonType === 'confirm') {
-      if (status === AppointmentStatus.CONFIRMADO && !isViewed) {
+      
+      // Se o aluno respondeu, brilha a cor específica
+      if (buttonType === 'confirm' && currentStatus === AppointmentStatus.CONFIRMADO) {
         return `${baseClasses} bg-green-700 border-green-400 animate-neon-green`;
       }
-      return `${baseClasses} bg-green-600 border-green-700 hover:bg-green-700 opacity-90`;
-    }
-
-    if (buttonType === 'cancel') {
-      if (status === AppointmentStatus.CANCELADO && !isViewed) {
+      if (buttonType === 'cancel' && currentStatus === AppointmentStatus.CANCELADO) {
         return `${baseClasses} bg-red-700 border-red-400 animate-neon-red`;
       }
-      return `${baseClasses} bg-red-600 border-red-700 hover:bg-red-700 opacity-90`;
-    }
-
-    if (buttonType === 'reschedule') {
-      if (status === AppointmentStatus.REMARCAR && !isViewed) {
+      if (buttonType === 'reschedule' && currentStatus === AppointmentStatus.REMARCAR) {
         return `${baseClasses} bg-yellow-700 border-yellow-400 animate-neon-yellow`;
       }
-      return `${baseClasses} bg-yellow-600 border-yellow-700 hover:bg-yellow-700 opacity-90`;
     }
 
-    return baseClasses;
+    // Estilo padrão (sem brilho ou já visto)
+    switch(buttonType) {
+      case 'confirm': return `${baseClasses} bg-green-600 border-green-700 hover:bg-green-700 opacity-90`;
+      case 'cancel': return `${baseClasses} bg-red-600 border-red-700 hover:bg-red-700 opacity-90`;
+      case 'reschedule': return `${baseClasses} bg-yellow-600 border-yellow-700 hover:bg-yellow-700 opacity-90`;
+      default: return baseClasses;
+    }
   };
 
   return (
@@ -74,24 +70,9 @@ const AppointmentCard: React.FC<{ appointment: Appointment, onUpdateStatus: (id:
         </div>
 
         <div className="flex gap-2">
-          <button
-            onClick={() => onUpdateStatus(appointment.id, AppointmentStatus.CONFIRMADO)}
-            className={getButtonClasses(appointment.status, 'confirm', appointment.isViewed || false)}
-          >
-            Confirmar
-          </button>
-          <button
-            onClick={() => onUpdateStatus(appointment.id, AppointmentStatus.CANCELADO)}
-            className={getButtonClasses(appointment.status, 'cancel', appointment.isViewed || false)}
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={() => onUpdateStatus(appointment.id, AppointmentStatus.REMARCAR)}
-            className={getButtonClasses(appointment.status, 'reschedule', appointment.isViewed || false)}
-          >
-            Remarcar
-          </button>
+          <button onClick={() => onUpdateStatus(appointment.id, AppointmentStatus.CONFIRMADO)} className={getButtonClasses(appointment.status, 'confirm', !!appointment.isViewed)}>Confirmar</button>
+          <button onClick={() => onUpdateStatus(appointment.id, AppointmentStatus.CANCELADO)} className={getButtonClasses(appointment.status, 'cancel', !!appointment.isViewed)}>Cancelar</button>
+          <button onClick={() => onUpdateStatus(appointment.id, AppointmentStatus.REMARCAR)} className={getButtonClasses(appointment.status, 'reschedule', !!appointment.isViewed)}>Remarcar</button>
         </div>
       </div>
     </div>
@@ -99,7 +80,6 @@ const AppointmentCard: React.FC<{ appointment: Appointment, onUpdateStatus: (id:
 };
 
 const Dashboard: React.FC<DashboardProps> = ({ appointments, onUpdateStatus, userName = 'Profissional' }) => {
-  // Ordenar: Pendentes primeiro, depois data mais próxima
   const sortedAppointments = [...appointments].sort((a, b) => {
     if (a.status === AppointmentStatus.PENDENTE && b.status !== AppointmentStatus.PENDENTE) return -1;
     if (a.status !== AppointmentStatus.PENDENTE && b.status === AppointmentStatus.PENDENTE) return 1;
@@ -114,15 +94,10 @@ const Dashboard: React.FC<DashboardProps> = ({ appointments, onUpdateStatus, use
       </div>
 
       {sortedAppointments.length === 0 ? (
-        <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-100 dark:border-gray-700">
-          <p className="text-gray-500 text-lg">Nenhum agendamento encontrado.</p>
-        </div>
+        <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-100 dark:border-gray-700 text-gray-500">Nenhum agendamento encontrado.</div>
       ) : (
-        // Alterado de md:grid-cols-2 para lg:grid-cols-2 para garantir que tablets (md) fiquem com 1 coluna
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {sortedAppointments.map(app => (
-            <AppointmentCard key={app.id} appointment={app} onUpdateStatus={onUpdateStatus} />
-          ))}
+          {sortedAppointments.map(app => <AppointmentCard key={app.id} appointment={app} onUpdateStatus={onUpdateStatus} />)}
         </div>
       )}
     </div>
