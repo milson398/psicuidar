@@ -200,7 +200,7 @@ const MinhaAgenda: React.FC<MinhaAgendaProps> = ({ appointments, onAddAppointmen
         if (waWindow) waWindow.document.write('<p style="font-family: sans-serif; text-align: center; margin-top: 50px;">Preparando link...<br>Aguarde.</p>');
 
         try {
-            const baseUrl = import.meta.env.VITE_PUBLIC_URL || 'https://psicuidar-jq2b.vercel.app';
+            const baseUrl = import.meta.env.VITE_PUBLIC_URL || 'https://psicuidar.vercel.app';
             const message = "Olá, " + appointment.studentName + "! Tudo bem?\n\n" +
                 "Passando para lembrar do seu agendamento de " + appointment.sessionType + " no dia " + appointment.dateTime.toLocaleDateString('pt-BR') + " às " + appointment.dateTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) + ".\n\n" +
                 "Por favor, responda clicando em um dos links abaixo:\n\n" +
