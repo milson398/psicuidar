@@ -132,7 +132,7 @@ const App: React.FC = () => {
       case 'Relatórios Gerenciais': return <Relatorios appointments={appointments} />;
       case 'Avaliação': return <Avaliacao />;
       case 'Intervenção': return <Intervencao />;
-      case 'Matrículas': return <Matriculas />;
+      case 'Matrículas': return <Matriculas isFuncionario={isFuncionario} />;
       case 'Equipe': return <ControleFuncionarios />;
       case 'Controle de Pagamentos': return <Pagamentos />;
       case 'Configurações': return <Configuracoes userProfile={{ name: userName, email: userEmail, role: isFuncionario ? 'Funcionário' : 'Administradora', registry: '', photoUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ana' }} onUpdateProfile={(p) => setUserName(p.name)} currentTheme={currentTheme} onUpdateTheme={setCurrentTheme} currentBackground={currentBackground} onUpdateBackground={setCurrentBackground} />;
@@ -152,3 +152,4 @@ const App: React.FC = () => {
 };
 
 export default App;
+

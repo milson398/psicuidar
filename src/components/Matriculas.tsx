@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+﻿import React, { useState, useMemo, useEffect } from 'react';
 import { supabase } from '../services/supabase';
 
 interface Matricula {
@@ -11,7 +11,7 @@ interface Matricula {
     valor: number;
 }
 
-const Matriculas: React.FC = () => {
+const Matriculas: React.FC<{ isFuncionario?: boolean }> = ({ isFuncionario }) => {
     const [matriculas, setMatriculas] = useState<Matricula[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -29,7 +29,7 @@ const Matriculas: React.FC = () => {
                 setMatriculas(data);
             }
         } catch (error) {
-            console.error('Erro ao buscar matrículas:', error);
+            console.error('Erro ao buscar matrÃ­culas:', error);
         } finally {
             setLoading(false);
         }
@@ -53,7 +53,7 @@ const Matriculas: React.FC = () => {
         valor: ''
     });
 
-    // Cálculos Automáticos
+    // CÃ¡lculos AutomÃ¡ticos
     const stats = useMemo(() => {
         const totalAlunos = matriculas.length;
         const valorTotal = matriculas.reduce((acc, curr) => acc + curr.valor, 0);
@@ -92,31 +92,31 @@ const Matriculas: React.FC = () => {
         const valorNum = parseFloat(formData.valor.replace(',', '.')) || 0;
 
         try {
-            // Log de versão para depuração (v5)
+            // Log de versÃ£o para depuraÃ§Ã£o (v5)
             console.log('PsiCuidar v5 - Iniciando salvamento de aluno...');
 
-            // Tenta obter a sessão de forma rápida (local)
+            // Tenta obter a sessÃ£o de forma rÃ¡pida (local)
             const { data: { session } } = await supabase.auth.getSession();
             let user = session?.user;
 
-            // Se não houver sessão local, tenta validar com o servidor como fallback
+            // Se nÃ£o houver sessÃ£o local, tenta validar com o servidor como fallback
             if (!user) {
                 const { data: userData } = await supabase.auth.getUser();
                 user = userData?.user;
             }
 
-            // Regra: Se o usuário NÃO estiver autenticado de forma alguma, redireciona para login
-            // Apenas se não houver sessão E não houver flag de auth (evita loops se o Supabase estiver lento)
+            // Regra: Se o usuÃ¡rio NÃƒO estiver autenticado de forma alguma, redireciona para login
+            // Apenas se nÃ£o houver sessÃ£o E nÃ£o houver flag de auth (evita loops se o Supabase estiver lento)
             const isLocalAuth = sessionStorage.getItem('psicuidar_auth') === 'true';
 
             if (!user && !isLocalAuth) {
-                console.error('Sessão expirada. Redirecionando...');
+                console.error('SessÃ£o expirada. Redirecionando...');
                 sessionStorage.removeItem('psicuidar_auth');
                 window.location.reload();
                 return;
             }
 
-            // Preparar dados para salvar - Garantindo user_id se disponível
+            // Preparar dados para salvar - Garantindo user_id se disponÃ­vel
             const payload: any = {
                 nome: formData.nome,
                 idade: formData.idade,
@@ -152,8 +152,8 @@ const Matriculas: React.FC = () => {
             setIsModalOpen(false);
         } catch (error: any) {
             console.error('Erro ao salvar:', error);
-            // Mensagem amigável conforme Regra 1 (sem detalhes técnicos)
-            alert('Não foi possível salvar os dados. Se persistir, recarregue a página.');
+            // Mensagem amigÃ¡vel conforme Regra 1 (sem detalhes tÃ©cnicos)
+            alert('NÃ£o foi possÃ­vel salvar os dados. Se persistir, recarregue a pÃ¡gina.');
         }
     };
 
@@ -166,7 +166,7 @@ const Matriculas: React.FC = () => {
             if (error) throw error;
             fetchMatriculas();
         } catch (error) {
-            console.error('Erro ao excluir matrícula:', error);
+            console.error('Erro ao excluir matrÃ­cula:', error);
         }
         setDeletingId(null);
     };
@@ -175,7 +175,7 @@ const Matriculas: React.FC = () => {
         <div className="container mx-auto px-4 sm:px-6 py-8 animate-fade-in-up">
             <div className="flex flex-col lg:flex-row justify-between items-center mb-8 gap-4">
                 <div className="text-center lg:text-left">
-                    <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Matrículas</h1>
+                    <h1 className="text-3xl font-bold text-gray-800 dark:text-white">MatrÃ­culas</h1>
                     <p className="text-gray-500 dark:text-gray-400 mt-1">Gerenciamento de alunos e mensalidades.</p>
                 </div>
                 <button
@@ -187,24 +187,24 @@ const Matriculas: React.FC = () => {
                 </button>
             </div>
 
-            {/* Cards de Estatísticas */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {/* Cards de EstatÃ­sticas */}
+            <div className="grid {isFuncionario ? 'grid-cols-1 max-w-xs' : 'grid-cols-1 md:grid-cols-3'} gap-6 mb-8">
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border-l-4 border-blue-500">
                     <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total de Alunos</p>
                     <h3 className="text-3xl font-extrabold text-gray-800 dark:text-white mt-1">{stats.totalAlunos}</h3>
                 </div>
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border-l-4 border-green-500">
+                {!isFuncionario && (<div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border-l-4 border-green-500">
                     <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Valor Total</p>
                     <h3 className="text-3xl font-extrabold text-gray-800 dark:text-white mt-1">
                         R$ {stats.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </h3>
-                </div>
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border-l-4 border-purple-500">
-                    <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Média por Aluno</p>
+                </div>)}
+                {!isFuncionario && (<div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border-l-4 border-purple-500">
+                    <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">MÃ©dia por Aluno</p>
                     <h3 className="text-3xl font-extrabold text-gray-800 dark:text-white mt-1">
                         R$ {stats.mediaPorAluno.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </h3>
-                </div>
+                </div>)}
             </div>
 
             {/* Tabela de Alunos */}
@@ -217,7 +217,7 @@ const Matriculas: React.FC = () => {
                                 <th className="px-6 py-3 text-left text-sm font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600">Idade</th>
                                 <th className="px-6 py-3 text-left text-sm font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600">Atividade</th>
                                 <th className="px-6 py-3 text-left text-sm font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600">Celular</th>
-                                <th className="px-6 py-3 text-left text-sm font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600">Valor (R$)</th>
+                                {!isFuncionario && <th className="px-6 py-3 text-left text-sm font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600">Valor (R$)</th>}
                                 <th className="px-6 py-3 text-right text-sm font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600"></th>
                             </tr>
                         </thead>
@@ -242,16 +242,16 @@ const Matriculas: React.FC = () => {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-base text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700">{m.celular}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-base font-bold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700">
+                                        {!isFuncionario && <td className="px-6 py-4 whitespace-nowrap text-base font-bold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700">
                                             R$ {m.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                        </td>
+                                        </td>}
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-base font-medium border border-gray-200 dark:border-gray-700">
                                             <div className="flex justify-end items-center space-x-2">
                                                 {deletingId === m.id ? (
                                                     <div className="flex items-center bg-red-50 dark:bg-red-900/20 rounded-lg p-1 animate-pulse">
                                                         <span className="text-xs font-bold text-red-600 dark:text-red-400 mr-2 ml-1">Deseja excluir?</span>
                                                         <button onClick={() => handleDelete(m.id)} className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors mr-1">Sim</button>
-                                                        <button onClick={() => setDeletingId(null)} className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded hover:bg-gray-300 transition-colors">Não</button>
+                                                        <button onClick={() => setDeletingId(null)} className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded hover:bg-gray-300 transition-colors">NÃ£o</button>
                                                     </div>
                                                 ) : (
                                                     <>
@@ -273,12 +273,12 @@ const Matriculas: React.FC = () => {
                 </div>
             </div>
 
-            {/* Modal de Cadastro/Edição */}
+            {/* Modal de Cadastro/EdiÃ§Ã£o */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black/60 z-50 flex justify-center items-center backdrop-blur-sm p-4" onClick={() => setIsModalOpen(false)}>
                     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-8 w-full max-w-lg max-h-[90vh] overflow-y-auto animate-fade-in-up" onClick={e => e.stopPropagation()}>
                         <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white border-b pb-4 dark:border-gray-700">
-                            {editingMatricula ? 'Editar Aluno' : 'Nova Matrícula'}
+                            {editingMatricula ? 'Editar Aluno' : 'Nova MatrÃ­cula'}
                         </h2>
                         <form onSubmit={handleSave} className="space-y-4">
                             <div>
@@ -290,22 +290,22 @@ const Matriculas: React.FC = () => {
                                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Idade</label>
                                     <input type="number" required value={formData.idade} onChange={e => setFormData({ ...formData, idade: e.target.value })} className="w-full p-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
                                 </div>
-                                <div>
+                                {!isFuncionario && <div>
                                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Valor da Atividade (R$)</label>
                                     <input type="text" required value={formData.valor} onChange={e => setFormData({ ...formData, valor: e.target.value })} className="w-full p-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: 150,00" />
-                                </div>
+                                </div>}
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Atividade</label>
-                                <input type="text" required value={formData.atividade} onChange={e => setFormData({ ...formData, atividade: e.target.value })} className="w-full p-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: Reforço Escolar" />
+                                <input type="text" required value={formData.atividade} onChange={e => setFormData({ ...formData, atividade: e.target.value })} className="w-full p-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: ReforÃ§o Escolar" />
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Celular</label>
                                 <input type="tel" required value={formData.celular} onChange={e => setFormData({ ...formData, celular: e.target.value })} className="w-full p-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" placeholder="(00) 00000-0000" />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Endereço</label>
-                                <textarea rows={2} required value={formData.endereco} onChange={e => setFormData({ ...formData, endereco: e.target.value })} className="w-full p-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" placeholder="Rua, Número, Bairro" />
+                                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">EndereÃ§o</label>
+                                <textarea rows={2} required value={formData.endereco} onChange={e => setFormData({ ...formData, endereco: e.target.value })} className="w-full p-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" placeholder="Rua, NÃºmero, Bairro" />
                             </div>
 
                             <div className="flex justify-end space-x-3 mt-8">
@@ -321,3 +321,5 @@ const Matriculas: React.FC = () => {
 };
 
 export default Matriculas;
+
+
