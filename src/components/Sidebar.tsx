@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { ThemeColor } from '../types';
 
 interface SidebarProps {
@@ -64,19 +64,19 @@ const Sidebar: React.FC<SidebarProps> = ({ setActivePage, activePage, themeColor
   const navItems = [
     { label: 'Dashboard', icon: <DashboardIcon /> },
     { label: 'Minha Agenda', icon: <CalendarIcon /> },
-    { label: 'Avaliação', icon: <ClipboardCheckIcon /> },
-    { label: 'Intervenção', icon: <PuzzleIcon /> },
-    { label: 'Matrículas', icon: <UserGroupIcon /> },
+    { label: 'AvaliaÃ§Ã£o', icon: <ClipboardCheckIcon /> },
+    { label: 'IntervenÃ§Ã£o', icon: <PuzzleIcon /> },
+    { label: 'MatrÃ­culas', icon: <UserGroupIcon /> },
   ];
 
   if (!isFuncionario) {
-    navItems.splice(2, 0, { label: 'Relatórios Gerenciais', icon: <ChartBarIcon /> });
+    navItems.splice(2, 0, { label: 'RelatÃ³rios Gerenciais', icon: <ChartBarIcon /> });
     navItems.push({ label: 'Equipe', icon: <TeamIcon /> });
     navItems.push({ label: 'Controle de Pagamentos', icon: <CurrencyDollarIcon /> });
-    navItems.push({ label: 'Configurações', icon: <CogIcon /> });
+    navItems.push({ label: 'ConfiguraÃ§Ãµes', icon: <CogIcon /> });
   }
 
-  // Adiciona botão Sair para todos
+  // Adiciona botÃ£o Sair para todos
   navItems.push({ label: 'Sair do Sistema', icon: <LogoutIcon /> });
 
   if (userEmail === 'admin@psicuidar.com') {
@@ -116,7 +116,7 @@ const Sidebar: React.FC<SidebarProps> = ({ setActivePage, activePage, themeColor
                   if (item.label === 'Sair do Sistema' && onLogout) {
                     onLogout();
                   } else {
-                    setActivePage(item.label);
+                    setActivePage(item.label); if (window.innerWidth < 768) onClose();
                   }
                 }}
                 activeClass={activeClass}
