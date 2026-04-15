@@ -295,3 +295,4 @@ const Matriculas: React.FC<{ isFuncionario?: boolean }> = ({ isFuncionario }) =>
 };
 
 export default Matriculas;
+
