@@ -1,4 +1,4 @@
-﻿import React from 'react';
+﻿import React, { useState } from 'react';
 import { Appointment, AppointmentStatus } from '../types';
 
 interface DashboardProps {
@@ -20,27 +20,12 @@ const AppointmentCard: React.FC<{ appointment: Appointment, onUpdateStatus: (id:
 
   const getButtonClasses = (currentStatus: AppointmentStatus, buttonType: 'confirm' | 'cancel' | 'reschedule', isViewed: boolean) => {
     const baseClasses = "flex-1 py-4 px-2 text-sm sm:text-base rounded-lg font-black text-white transition-all duration-300 focus:outline-none shadow-xl transform active:scale-95 whitespace-nowrap border-2";
-    
-    // Se o profissional ainda não viu a resposta (isViewed === false)
     if (!isViewed) {
-      // Se está pendente, todos brilham Azul
-      if (currentStatus === AppointmentStatus.PENDENTE) {
-        return `${baseClasses} bg-blue-600 border-blue-400 animate-neon-blue`;
-      }
-      
-      // Se o aluno respondeu, brilha a cor específica
-      if (buttonType === 'confirm' && currentStatus === AppointmentStatus.CONFIRMADO) {
-        return `${baseClasses} bg-green-700 border-green-400 animate-neon-green`;
-      }
-      if (buttonType === 'cancel' && currentStatus === AppointmentStatus.CANCELADO) {
-        return `${baseClasses} bg-red-700 border-red-400 animate-neon-red`;
-      }
-      if (buttonType === 'reschedule' && currentStatus === AppointmentStatus.REMARCAR) {
-        return `${baseClasses} bg-yellow-700 border-yellow-400 animate-neon-yellow`;
-      }
+      if (currentStatus === AppointmentStatus.PENDENTE) return `${baseClasses} bg-blue-600 border-blue-400 animate-neon-blue`;
+      if (buttonType === 'confirm' && currentStatus === AppointmentStatus.CONFIRMADO) return `${baseClasses} bg-green-700 border-green-400 animate-neon-green`;
+      if (buttonType === 'cancel' && currentStatus === AppointmentStatus.CANCELADO) return `${baseClasses} bg-red-700 border-red-400 animate-neon-red`;
+      if (buttonType === 'reschedule' && currentStatus === AppointmentStatus.REMARCAR) return `${baseClasses} bg-yellow-700 border-yellow-400 animate-neon-yellow`;
     }
-
-    // Estilo padrão (sem brilho ou já visto)
     switch(buttonType) {
       case 'confirm': return `${baseClasses} bg-green-600 border-green-700 hover:bg-green-700 opacity-90`;
       case 'cancel': return `${baseClasses} bg-red-600 border-red-700 hover:bg-red-700 opacity-90`;
@@ -61,14 +46,12 @@ const AppointmentCard: React.FC<{ appointment: Appointment, onUpdateStatus: (id:
             {appointment.status}
           </span>
         </div>
-
         <div className="flex items-center text-gray-600 dark:text-gray-300 mb-6 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
           <svg className="w-5 h-5 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           <span className="font-medium text-sm">
             {appointment.dateTime.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })} às {appointment.dateTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
           </span>
         </div>
-
         <div className="flex gap-2">
           <button onClick={() => onUpdateStatus(appointment.id, AppointmentStatus.CONFIRMADO)} className={getButtonClasses(appointment.status, 'confirm', !!appointment.isViewed)}>Confirmar</button>
           <button onClick={() => onUpdateStatus(appointment.id, AppointmentStatus.CANCELADO)} className={getButtonClasses(appointment.status, 'cancel', !!appointment.isViewed)}>Cancelar</button>
@@ -80,6 +63,8 @@ const AppointmentCard: React.FC<{ appointment: Appointment, onUpdateStatus: (id:
 };
 
 const Dashboard: React.FC<DashboardProps> = ({ appointments, onUpdateStatus, userName = 'Profissional' }) => {
+  const [showSecurityNotice, setShowSecurityNotice] = useState(true);
+
   const sortedAppointments = [...appointments].sort((a, b) => {
     if (a.status === AppointmentStatus.PENDENTE && b.status !== AppointmentStatus.PENDENTE) return -1;
     if (a.status !== AppointmentStatus.PENDENTE && b.status === AppointmentStatus.PENDENTE) return 1;
@@ -88,10 +73,39 @@ const Dashboard: React.FC<DashboardProps> = ({ appointments, onUpdateStatus, use
 
   return (
     <div className="container mx-auto px-4 sm:px-6 pt-16 pb-8 custom-scrollbar">
-      <div className="mb-10 text-center lg:text-left">
+      <div className="mb-8 text-center lg:text-left">
         <h1 className="text-3xl font-extrabold text-[#11ba82] dark:text-[#11ba82] tracking-tight">Dashboard</h1>
         <p className="mt-2 text-gray-500 dark:text-gray-400 font-medium">Olá, {userName}! Veja seus agendamentos para hoje.</p>
       </div>
+
+      {/* 🛡️ Aviso de Segurança Discreto */}
+      {showSecurityNotice && (
+        <div className="mb-10 animate-fade-in">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-100 dark:border-blue-800/50 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+            <div className="flex items-center space-x-4 text-center sm:text-left">
+              <div className="bg-blue-500/20 p-2 rounded-lg text-xl">🛡️</div>
+              <div>
+                <h4 className="text-sm font-bold text-blue-900 dark:text-blue-100">Proteja sua conta</h4>
+                <p className="text-xs text-blue-700 dark:text-blue-300 mt-0.5">Para sua segurança, recomendamos a troca periódica da sua senha de acesso.</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+               <button 
+                onClick={() => setShowSecurityNotice(false)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs font-semibold px-3 py-2 transition-colors"
+               >
+                 Agora não
+               </button>
+               <button 
+                onClick={() => setShowSecurityNotice(false)}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-md transition-all active:scale-95"
+               >
+                 Trocar Senha
+               </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {sortedAppointments.length === 0 ? (
         <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-100 dark:border-gray-700 text-gray-500">Nenhum agendamento encontrado.</div>
