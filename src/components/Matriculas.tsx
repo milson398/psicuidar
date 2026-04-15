@@ -203,9 +203,7 @@ const Matriculas: React.FC<{ isFuncionario?: boolean }> = ({ isFuncionario }) =>
                                 <th className="px-6 py-3 text-left text-sm font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600">Idade</th>
                                 <th className="px-6 py-3 text-left text-sm font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600">Atividade</th>
                                 <th className="px-6 py-3 text-left text-sm font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600">Celular</th>
-                                {!isFuncionario && (
-                                    <th className="px-6 py-3 text-left text-sm font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600">Valor (R$)</th>
-                                )}
+                                <th className="px-6 py-3 text-left text-sm font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600">Valor (R$)</th>
                                 <th className="px-6 py-3 text-right text-sm font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider border border-gray-200 dark:border-gray-600"></th>
                             </tr>
                         </thead>
@@ -224,9 +222,7 @@ const Matriculas: React.FC<{ isFuncionario?: boolean }> = ({ isFuncionario }) =>
                                             <span className="px-2 py-1 text-sm font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200 rounded">{m.atividade}</span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-base text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700">{m.celular}</td>
-                                        {!isFuncionario && (
-                                            <td className="px-6 py-4 whitespace-nowrap text-base font-bold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700">R$ {m.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                                        )}
+                                        <td className="px-6 py-4 whitespace-nowrap text-base font-bold text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700">R$ {m.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-base font-medium border border-gray-200 dark:border-gray-700">
                                             <div className="flex justify-end items-center space-x-2">
                                                 {deletingId === m.id ? (
@@ -295,4 +291,3 @@ const Matriculas: React.FC<{ isFuncionario?: boolean }> = ({ isFuncionario }) =>
 };
 
 export default Matriculas;
-
