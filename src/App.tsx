@@ -35,6 +35,15 @@ const App: React.FC = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [currentTheme, setCurrentTheme] = useState<ThemeColor>('blue');
   const [currentBackground, setCurrentBackground] = useState<ThemeColor>('blue');
+  const backgroundClasses: Record<ThemeColor, string> = {
+    blue: 'bg-blue-50 dark:bg-blue-950',
+    black: 'bg-gray-100 dark:bg-gray-950',
+    gray: 'bg-gray-100 dark:bg-gray-800',
+    purple: 'bg-purple-50 dark:bg-purple-950',
+    green: 'bg-green-50 dark:bg-green-950',
+    red: 'bg-red-50 dark:bg-red-950',
+    white: 'bg-white dark:bg-gray-900'
+  };
 
   const currentView = useMemo((): ViewState => {
     if (studentResponse) return 'PUBLIC_RESPONSE';
@@ -145,7 +154,7 @@ const App: React.FC = () => {
       <Sidebar activePage={activePage} setActivePage={setActivePage} isFuncionario={isFuncionario} themeColor={currentTheme} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} onLogout={() => { setIsAuthenticated(false); setIsFuncionario(false); }} />
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <Header onLogout={() => setIsAuthenticated(false)} userProfile={{ name: userName, email: userEmail, role: isFuncionario ? 'Funcionário' : 'Administradora', registry: '', photoUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ana' }} onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)} onNavigate={setActivePage} currentPage={activePage} />
-        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 scroll-smooth custom-scrollbar">{renderPage()}</main>
+        <main className={`flex-1 overflow-y-auto ${backgroundClasses[currentBackground]} scroll-smooth custom-scrollbar`}>{renderPage()}</main>
       </div>
     </div>
   );
