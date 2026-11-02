@@ -215,7 +215,7 @@ const Matriculas: React.FC<{ isFuncionario?: boolean }> = ({ isFuncionario }) =>
                                     <tr key={m.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                         <td className="px-6 py-4 whitespace-nowrap border border-gray-200 dark:border-gray-700">
                                             <div className="text-base font-bold text-gray-900 dark:text-white">{m.nome}</div>
-                                            <div className="text-sm text-gray-500 truncate max-w-[200px]">{m.endereco}</div>
+                                            <div className="text-sm font-medium text-white truncate max-w-[200px]">{m.endereco}</div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-base text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700">{m.idade} anos</td>
                                         <td className="px-6 py-4 whitespace-nowrap border border-gray-200 dark:border-gray-700">
