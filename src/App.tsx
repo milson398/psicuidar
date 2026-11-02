@@ -42,7 +42,7 @@ const App: React.FC = () => {
     purple: 'bg-purple-50 dark:bg-purple-950',
     green: 'bg-green-50 dark:bg-green-950',
     red: 'bg-red-50 dark:bg-red-950',
-    white: 'bg-white dark:bg-gray-900'
+    white: 'bg-white'
   };
 
   const currentView = useMemo((): ViewState => {
