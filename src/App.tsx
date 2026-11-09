@@ -25,6 +25,7 @@ const App: React.FC = () => {
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isFuncionario, setIsFuncionario] = useState(false);
+  const [funcionarioId, setFuncionarioId] = useState<string | null>(null);
   const [studentResponse, setStudentResponse] = useState<{ success: boolean; msg: string } | null>(null);
   const [isProcessingToken, setIsProcessingToken] = useState(hasToken);
 
@@ -126,7 +127,7 @@ const App: React.FC = () => {
   }
 
   if (currentView === 'LOGIN_FUNCIONARIO') {
-    return <FuncionarioLogin onLoginSuccess={(name) => { setIsAuthenticated(true); setIsFuncionario(true); setUserName(name); }} />;
+    return <FuncionarioLogin onLoginSuccess={(name, id) => { setIsAuthenticated(true); setIsFuncionario(true); setUserName(name); setFuncionarioId(id); }} />;
   }
 
   if (currentView === 'LOGIN_PROFESSIONAL') {
@@ -136,7 +137,7 @@ const App: React.FC = () => {
   const renderPage = () => {
     const commonProps = { onUpdateStatus: (id: string, s: AppointmentStatus) => supabase.from('appointments').update({ status: s, is_viewed: true }).eq('id', id).then(() => fetchAppointments()) };
     switch (activePage) {
-      case 'Dashboard': return <Dashboard appointments={appointments} onUpdateStatus={commonProps.onUpdateStatus} userName={userName} />;
+      case 'Dashboard': return <Dashboard appointments={appointments} onUpdateStatus={commonProps.onUpdateStatus} userName={userName} isFuncionario={isFuncionario} funcionarioId={isFuncionario ? funcionarioId : null} />;
       case 'Minha Agenda': return <MinhaAgenda appointments={appointments} onAddAppointment={async (data) => { const { data: { user } } = await supabase.auth.getUser(); await supabase.from('appointments').insert([{ patient_name: data.studentName, whatsapp: data.whatsapp, date_time: data.dateTime.toISOString(), session_type: data.sessionType, user_id: user?.id, is_viewed: true }]); fetchAppointments(); }} onEditAppointment={async (id, data) => { const updateData: any = {}; if (data.studentName) updateData.patient_name = data.studentName; if (data.whatsapp) updateData.whatsapp = data.whatsapp; if (data.dateTime) updateData.date_time = data.dateTime.toISOString(); if (data.sessionType) updateData.session_type = data.sessionType; await supabase.from('appointments').update(updateData).eq('id', id); fetchAppointments(); }} onDeleteAppointment={async (id) => { await supabase.from('appointments').delete().eq('id', id); fetchAppointments(); }} />;
       case 'Relatórios Gerenciais': return <Relatorios appointments={appointments} />;
       case 'Avaliação': return <Avaliacao />;
@@ -145,15 +146,15 @@ const App: React.FC = () => {
       case 'Equipe': return <ControleFuncionarios />;
       case 'Controle de Pagamentos': return <Pagamentos />;
       case 'Configurações': return <Configuracoes userProfile={{ name: userName, email: userEmail, role: isFuncionario ? 'Funcionário' : 'Administradora', registry: '', photoUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ana' }} onUpdateProfile={(p) => setUserName(p.name)} currentTheme={currentTheme} onUpdateTheme={setCurrentTheme} currentBackground={currentBackground} onUpdateBackground={setCurrentBackground} />;
-      default: return <Dashboard appointments={appointments} onUpdateStatus={commonProps.onUpdateStatus} userName={userName} />;
+      default: return <Dashboard appointments={appointments} onUpdateStatus={commonProps.onUpdateStatus} userName={userName} isFuncionario={isFuncionario} funcionarioId={isFuncionario ? funcionarioId : null} />;
     }
   };
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
-      <Sidebar activePage={activePage} setActivePage={setActivePage} isFuncionario={isFuncionario} themeColor={currentTheme} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} onLogout={() => { setIsAuthenticated(false); setIsFuncionario(false); }} />
+      <Sidebar activePage={activePage} setActivePage={setActivePage} isFuncionario={isFuncionario} themeColor={currentTheme} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} onLogout={() => { setIsAuthenticated(false); setIsFuncionario(false); setFuncionarioId(null); }} />
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        <Header onLogout={() => setIsAuthenticated(false)} userProfile={{ name: userName, email: userEmail, role: isFuncionario ? 'Funcionário' : 'Administradora', registry: '', photoUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ana' }} onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)} onNavigate={setActivePage} currentPage={activePage} />
+        <Header onLogout={() => { setIsAuthenticated(false); setIsFuncionario(false); setFuncionarioId(null); }} userProfile={{ name: userName, email: userEmail, role: isFuncionario ? 'Funcionário' : 'Administradora', registry: '', photoUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ana' }} onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)} onNavigate={setActivePage} currentPage={activePage} />
         <main className={`flex-1 overflow-y-auto ${backgroundClasses[currentBackground]} scroll-smooth custom-scrollbar`}>{renderPage()}</main>
       </div>
     </div>
@@ -161,4 +162,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-

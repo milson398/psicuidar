@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../services/supabase';
 
 interface FuncionarioLoginProps {
-    onLoginSuccess: (name: string) => void;
+    onLoginSuccess: (name: string, funcionarioId: string) => void;
 }
 
 const FuncionarioLogin: React.FC<FuncionarioLoginProps> = ({ onLoginSuccess }) => {
@@ -31,7 +31,7 @@ const FuncionarioLogin: React.FC<FuncionarioLoginProps> = ({ onLoginSuccess }) =
                 // Salva informações básicas no localStorage se necessário
                 localStorage.setItem('psicuidar_user_role', 'funcionario');
                 localStorage.setItem('psicuidar_user_nome', data.nome);
-                onLoginSuccess(data.nome);
+                onLoginSuccess(data.nome, data.id);
             } else {
                 setError('E-mail ou senha incorretos.');
             }

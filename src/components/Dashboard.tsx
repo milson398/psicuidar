@@ -1,10 +1,13 @@
 ﻿import React, { useState } from 'react';
 import { Appointment, AppointmentStatus } from '../types';
+import FuncionarioTrocarSenhaModal from './FuncionarioTrocarSenhaModal';
 
 interface DashboardProps {
   appointments: Appointment[];
   onUpdateStatus: (id: string, status: AppointmentStatus) => void;
   userName?: string;
+  isFuncionario?: boolean;
+  funcionarioId?: string | null;
 }
 
 const AppointmentCard: React.FC<{ appointment: Appointment, onUpdateStatus: (id: string, status: AppointmentStatus) => void }> = ({ appointment, onUpdateStatus }) => {
@@ -62,8 +65,9 @@ const AppointmentCard: React.FC<{ appointment: Appointment, onUpdateStatus: (id:
   );
 };
 
-const Dashboard: React.FC<DashboardProps> = ({ appointments, onUpdateStatus, userName = 'Profissional' }) => {
+const Dashboard: React.FC<DashboardProps> = ({ appointments, onUpdateStatus, userName = 'Profissional', isFuncionario = false, funcionarioId }) => {
   const [showSecurityNotice, setShowSecurityNotice] = useState(true);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   const sortedAppointments = [...appointments].sort((a, b) => {
     if (a.status === AppointmentStatus.PENDENTE && b.status !== AppointmentStatus.PENDENTE) return -1;
@@ -97,7 +101,7 @@ const Dashboard: React.FC<DashboardProps> = ({ appointments, onUpdateStatus, use
                  Agora não
                </button>
                <button 
-                onClick={() => setShowSecurityNotice(false)}
+                onClick={() => setShowPasswordModal(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-md transition-all active:scale-95"
                >
                  Trocar Senha
@@ -105,6 +109,15 @@ const Dashboard: React.FC<DashboardProps> = ({ appointments, onUpdateStatus, use
             </div>
           </div>
         </div>
+      )}
+
+      {showPasswordModal && (
+        <FuncionarioTrocarSenhaModal
+          isFuncionario={isFuncionario}
+          funcionarioId={funcionarioId}
+          onClose={() => setShowPasswordModal(false)}
+          onSuccess={() => setShowSecurityNotice(false)}
+        />
       )}
 
       {sortedAppointments.length === 0 ? (
