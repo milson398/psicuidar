@@ -71,18 +71,18 @@ const ProfessionalLogin: React.FC<ProfessionalLoginProps> = ({ onLoginSuccess })
               <span className="text-3xl font-bold text-white tracking-tight">PsiCuidar</span>
             </div>
             <h2 className="text-4xl font-extrabold text-white leading-tight mb-4">
-              Gestão Completa para <br />
+              Gestão completa para a <br />
               <span className="text-blue-400">Psicopedagogia</span>
             </h2>
             <p className="text-blue-100/80 text-lg max-w-md">
-              Organize sua clínica e potencialize seus atendimentos com inteligência.
+              Organize sua clínica, acompanhe seus atendimentos e tenha mais praticidade na gestão do seu dia a dia.
             </p>
           </div>
 
           <div className="bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10">
-            <h3 className="text-sm font-semibold text-blue-300 uppercase tracking-wider mb-4">Tudo o que você precisa</h3>
+            <h3 className="text-sm font-semibold text-blue-300 uppercase tracking-wider mb-4">Tudo o que você precisa em um só lugar</h3>
             <div className="grid grid-cols-2 gap-4">
-              {['Dashboard', 'Relatórios', 'Intervenção', 'Agenda', 'Avaliação', 'Configurações'].map(item => (
+              {['Dashboard', 'Relatórios', 'Intervenção', 'Agenda', 'Avaliações', 'Configurações'].map(item => (
                 <div key={item} className="flex items-center text-white/80 text-sm space-x-2">
                   <span className="text-blue-400">✓</span>
                   <span>{item}</span>
@@ -101,7 +101,7 @@ const ProfessionalLogin: React.FC<ProfessionalLoginProps> = ({ onLoginSuccess })
         <div className="w-full max-w-md space-y-8">
           <div className="text-center lg:text-left">
             <h1 className="text-3xl font-bold text-white">Área do Profissional</h1>
-            <p className="text-gray-400 mt-2">Insira seus dados para acessar o sistema.</p>
+            <p className="text-gray-400 mt-2">Acesse sua conta para continuar e gerenciar seus atendimentos.</p>
           </div>
 
           {error && (
@@ -112,7 +112,7 @@ const ProfessionalLogin: React.FC<ProfessionalLoginProps> = ({ onLoginSuccess })
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">E-mail Admin</label>
+              <label className="block text-sm font-medium text-gray-300 mb-2">E-mail</label>
               <input
                 type="email"
                 required
